@@ -1,0 +1,16 @@
+{
+  "models": [
+    {
+      "id": "your-video",
+      "name": "Your Video",
+      "method": "nerfacto",
+      "step": "2999",
+      "timestamp": "2026-09-16 14:56",
+      "stl": "models/your-video/mesh/model.stl",
+      "ply_mesh": "models/your-video/mesh/model_mesh.ply",
+      "pointcloud": "models/your-video/pointcloud/point_cloud.ply",
+      "obj": "models/your-video/mesh/model.obj"
+    }
+  ],
+  "latest": "your-video"
+}
