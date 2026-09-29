@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Namma Space: 3D Indoor Navigation Project Guide</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { color: #1a1a1a; font-size: 28px; text-align: center; margin-bottom: 10px; page-break-after: avoid; }
+        h2 { color: #2c5aa0; font-size: 20px; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #2c5aa0; padding-bottom: 5px; page-break-after: avoid; }
+        h3 { color: #2c5aa0; font-size: 16px; margin-top: 20px; margin-bottom: 10px; page-break-after: avoid; }
+        p { margin: 10px 0; text-align: justify; }
+        code { background-color: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Monaco', monospace; font-size: 90%; }
+        pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; page-break-inside: avoid; font-family: 'Monaco', monospace; font-size: 12px; }
+        ul, ol { margin: 10px 0; padding-left: 30px; }
+        li { margin: 5px 0; }
+        strong { color: #1a1a1a; font-weight: 600; }
+        hr { border: none; border-top: 1px solid #ddd; margin: 20px 0; }
+        .subtitle { text-align: center; color: #666; font-size: 18px; margin-bottom: 40px; }
+        @media print { body { max-width: none; } h1, h2, h3 { page-break-after: avoid; } pre { page-break-inside: avoid; } }
+    </style>
+</head>
+<body>
+<h1>Namma Space: 3D Indoor Navigation Project</h1>
+<p class="subtitle">Your Guide to Understanding the Technology</p>
+
+<hr>
+
+<h2>What Is This Project?</h2>
+
+<p><strong>Namma Space</strong> is a system that converts iPhone videos of indoor spaces into interactive 3D models that you can explore on a website. It's like Google Street View, but for indoor spaces like buildings, rooms, and hallways — and you create it just by walking around with your phone's camera.</p>
+
+<h3>The Goal</h3>
+<p>Create a 3D indoor navigation system for IIT Bombay's Techfest 2026-27 competition where users can:</p>
+<ul>
+<li>Explore buildings virtually in 3D</li>
+<li>Navigate indoor spaces from their browser</li>
+<li>See photorealistic reconstructions (not just flat images)</li>
+</ul>
+
+<h3>What Makes It Cool?</h3>
+<p>Instead of needing expensive 3D scanners or special equipment, you just:</p>
+<p><strong>1.</strong> Record a video walking through a space with your iPhone</p>
+<p><strong>2.</strong> Run some software on your laptop</p>
+<p><strong>3.</strong> Get a fully interactive 3D model you can explore with keyboard and mouse</p>
+
+<hr>
+
+<h2>How Does It Work? (Simple Version)</h2>
+
+<p>Think of it like this:</p>
+
+<h3>Step 1: Recording (You with iPhone)</h3>
+<ul>
+<li>Walk through a room/building with your iPhone recording video</li>
+<li>Move slowly and steadily</li>
+<li>Make sure there's good lighting</li>
+<li><strong>Result:</strong> A video file (like <code>1.mp4</code>)</li>
+</ul>
+
+<h3>Step 2: Breaking It Down (Computer Processing)</h3>
+<ul>
+<li>Your computer takes that video and extracts individual frames (like snapshots)</li>
+<li>Instead of 4857 frames from your video, it picks ~350 frames (enough detail, not too much)</li>
+<li>Shrinks them from 4K to 1080p (still high quality, but manageable)</li>
+<li><strong>Result:</strong> Hundreds of individual photos from your video</li>
+</ul>
+
+<h3>Step 3: Understanding the Space (COLMAP)</h3>
+<p>This is where the magic happens! A program called <strong>COLMAP</strong> looks at all those photos and figures out:</p>
+<ul>
+<li>Where was your camera when you took each photo?</li>
+<li>What direction were you facing?</li>
+<li>How do all these images relate to each other in 3D space?</li>
+</ul>
+
+<p>It's like solving a huge puzzle — finding matching features (edges, corners, textures) across photos to build a 3D understanding of the room.</p>
+
+<p><strong>Result:</strong> A "sparse point cloud" — thousands of 3D points showing where walls, objects, and features are in space.</p>
+
+<h3>Step 4: Creating the 3D Model (NeRF Training)</h3>
+<p>Now comes the AI part. A technique called <strong>Neural Radiance Fields (NeRF)</strong> uses:</p>
+<ul>
+<li>All those camera positions</li>
+<li>All those images</li>
+<li>The 3D structure from COLMAP</li>
+</ul>
+
+<p>And it trains an AI model to understand: "If I'm standing at position X looking in direction Y, what should I see?"</p>
+
+<p>The AI learns what the space looks like from EVERY possible angle — even angles you never filmed!</p>
+
+<p><strong>Result:</strong> A trained model that can generate photorealistic views from any position.</p>
+
+<h3>Step 5: Viewing It (Web Browser)</h3>
+<p>The final model loads in your web browser using Three.js (a 3D graphics library). You can:</p>
+<ul>
+<li>Move around with WASD keys (like a video game)</li>
+<li>Look around with your mouse</li>
+<li>Explore the space as if you're really there</li>
+</ul>
+
+<hr>
+
+<h2>The Technology Stack (What Software Does What)</h2>
+
+<h3>1. **FFmpeg** (Frame Extraction)</h3>
+<ul>
+<li><strong>What it does:</strong> Converts your video into individual image frames</li>
+<li><strong>Why it matters:</strong> Videos are continuous, but we need discrete photos to analyze</li>
+<li><strong>Your setup:</strong> FFmpeg 9.0.1</li>
+</ul>
+
+<h3>2. **COLMAP** (3D Reconstruction)</h3>
+<ul>
+<li><strong>What it does:</strong> Figures out the 3D structure of your space from 2D photos</li>
+<li><strong>How it works:</strong></li>
+<li><strong>Feature Extraction:</strong> Finds interesting points in each image (corners, edges, textures)</li>
+<li><strong>Feature Matching:</strong> Finds the same points across different images</li>
+<li><strong>Camera Pose Estimation:</strong> Calculates where you were standing and which direction you faced for each photo</li>
+<li><strong>Sparse Reconstruction:</strong> Creates a 3D point cloud showing the structure</li>
+<li><strong>Why it's challenging:</strong> Running on CPU (no NVIDIA GPU), so it takes 30-45 minutes</li>
+<li><strong>Your setup:</strong> COLMAP 4.1.1, CPU-only mode</li>
+</ul>
+
+<h3>3. **Nerfstudio** (AI Training Framework)</h3>
+<ul>
+<li><strong>What it does:</strong> Provides tools to train NeRF (Neural Radiance Fields) models</li>
+<li><strong>Two methods available:</strong></li>
+<li><strong>Splatfacto:</strong> Uses Gaussian Splatting (requires GPU, doesn't work on your Mac)</li>
+<li><strong>Nerfacto:</strong> Uses Neural Radiance Fields (works on CPU, what we're using)</li>
+<li><strong>Training process:</strong></li>
+<li>Iterates 15,000 times (for competition quality)</li>
+<li>Each iteration: AI guesses what a view should look like → compares to real photo → adjusts</li>
+<li>Gets better and better at predicting what you'd see from any angle</li>
+<li><strong>Your setup:</strong> Nerfstudio with nerfacto method, Python 3.10</li>
+</ul>
+
+<h3>4. **PyTorch** (AI Framework)</h3>
+<ul>
+<li><strong>What it does:</strong> The deep learning library that powers the neural network training</li>
+<li><strong>Your setup:</strong> PyTorch 2.14.0, CPU-only (no MPS/Metal GPU support despite M5 Max)</li>
+<li><strong>Why CPU-only:</strong> PyTorch says MPS is available but it doesn't actually work on your system</li>
+</ul>
+
+<h3>5. **Three.js** (Web Viewer)</h3>
+<ul>
+<li><strong>What it does:</strong> Renders the final 3D model in your web browser</li>
+<li><strong>Uses:</strong> WebGL (hardware-accelerated 3D graphics in browsers)</li>
+<li><strong>Controls:</strong> Keyboard (WASD) + Mouse (look around)</li>
+</ul>
+
+<hr>
+
+<h2>The Problem You Were Facing</h2>
+
+<h3>What Went Wrong?</h3>
+<p>When you tried training on your new competition video (<code>1.mp4</code>), COLMAP only recognized <strong>2 out of 810 frames</strong>.</p>
+
+<h3>Why Did This Happen?</h3>
+<p>Your video was:</p>
+<ul>
+<li><strong>4K resolution</strong> (3840 × 2160 pixels) — each frame is 5-6 MB</li>
+<li><strong>~4,900 frames</strong> total</li>
+<li>The script extracted <strong>810 frames at full 4K</strong> → <strong>4.6 GB of images</strong></li>
+</ul>
+
+<p><strong>COLMAP couldn't handle it.</strong> Too much data, too high resolution. It's like trying to solve an impossible jigsaw puzzle with 10,000 pieces when you only have time for 300.</p>
+
+<h3>The Solution</h3>
+<p>The new script (<code>train-competition.sh</code>) fixes this by:</p>
+<p><strong>1.</strong> <strong>Fewer frames:</strong> ~350 frames instead of 810</p>
+<p><strong>2.</strong> <strong>Lower resolution:</strong> 1080p instead of 4K (still high quality!)</p>
+<p><strong>3.</strong> <strong>Smarter matching:</strong> Sequential matching (optimized for videos) instead of exhaustive matching</p>
+<p><strong>4.</strong> <strong>Better settings:</strong> 15,000 training iterations with high quality settings</p>
+
+<hr>
+
+<h2>The Pipeline (Step-by-Step Process)</h2>
+
+<pre><code>[iPhone Video]
+      ↓
+[FFmpeg Frame Extraction] → 350 frames @ 1080p
+      ↓
+[COLMAP Feature Extraction] → Find interesting points in each image
+      ↓
+[COLMAP Feature Matching] → Match points across images
+      ↓
+[COLMAP Camera Estimation] → Figure out camera positions
+      ↓
+[COLMAP Reconstruction] → Build 3D point cloud
+      ↓
+[Nerfstudio Processing] → Convert to training format
+      ↓
+[NeRF Training (15,000 iterations)] → Train AI model (8-12 hours)
+      ↓
+[Export Model] → Final .ckpt file
+      ↓
+[Web Viewer] → Interactive 3D in browser</code></pre>
+
+<hr>
+
+<h2>Key Concepts Explained</h2>
+
+<h3>What Is a Neural Radiance Field (NeRF)?</h3>
+
+<p>Imagine teaching an AI to answer this question:</p>
+<p class="subtitle">"If I'm standing at position (X, Y, Z) looking in direction (θ, φ), what color should I see?"</p>
+
+<p>A NeRF is a neural network that learns this function:</p>
+<ul>
+<li><strong>Input:</strong> 3D position + viewing direction</li>
+<li><strong>Output:</strong> Color (RGB) + density (is there something here?)</li>
+</ul>
+
+<p>After training, it can generate photorealistic images from ANY viewpoint — even ones you never filmed!</p>
+
+<h3>What Is Gaussian Splatting?</h3>
+
+<p>An alternative to NeRF that represents the scene as millions of tiny 3D "splats" (like paint splatters). Each splat has:</p>
+<ul>
+<li>Position</li>
+<li>Color</li>
+<li>Size</li>
+<li>Orientation</li>
+</ul>
+
+<p><strong>Pros:</strong> Faster rendering, smoother real-time performance</p>
+<p><strong>Cons:</strong> Requires GPU (doesn't work on your Mac's CPU)</p>
+
+<h3>CPU vs GPU Training</h3>
+
+<p class="subtitle">GPU (Graphics Processing Unit):</p>
+<ul>
+<li>Specialized for parallel math operations</li>
+<li>100-1000x faster for AI training</li>
+<li>Your Mac has Metal GPU (M5 Max) but PyTorch/gsplat can't use it</li>
+</ul>
+
+<p class="subtitle">CPU (Central Processing Unit):</p>
+<ul>
+<li>General-purpose computing</li>
+<li>Slower for AI training but still works</li>
+<li>Your M5 Max CPU is powerful (ARM64, 8 cores)</li>
+<li>Training takes 8-12 hours instead of 30-60 minutes</li>
+</ul>
+
+<hr>
+
+<h2>Your Hardware & Software Setup</h2>
+
+<h3>Hardware</h3>
+<ul>
+<li><strong>Computer:</strong> MacBook Pro M5 Max</li>
+<li><strong>RAM:</strong> 36 GB</li>
+<li><strong>CPU:</strong> Apple Silicon ARM64, 8 performance cores</li>
+<li><strong>GPU:</strong> Metal GPU (not usable for this project)</li>
+<li><strong>Camera:</strong> iPhone 15 Pro (4K HEVC video)</li>
+</ul>
+
+<h3>Software</h3>
+<ul>
+<li><strong>OS:</strong> macOS 27 (Darwin 27.0.0)</li>
+<li><strong>Python:</strong> 3.10 (Miniforge3, ARM64-native)</li>
+<li><strong>Conda Environment:</strong> <code>namma-space</code></li>
+<li><strong>FFmpeg:</strong> 9.0.1</li>
+<li><strong>COLMAP:</strong> 4.1.1</li>
+<li><strong>PyTorch:</strong> 2.14.0 (CPU-only)</li>
+<li><strong>Nerfstudio:</strong> Latest version with nerfacto support</li>
+</ul>
+
+<h3>Why These Choices?</h3>
+<ul>
+<li><strong>Python 3.10:</strong> Best compatibility with Nerfstudio</li>
+<li><strong>ARM64-native:</strong> Uses your Mac's native architecture (not Intel emulation)</li>
+<li><strong>CPU-only:</strong> Because GPU acceleration doesn't work on your system</li>
+</ul>
+
+<hr>
+
+<h2>Timeline & Expectations</h2>
+
+<h3>For Your Competition Video (`1.mp4`):</h3>
+
+<p class="subtitle">Phase 1: Frame Extraction</p>
+<ul>
+<li><strong>Time:</strong> ~2 minutes</li>
+<li><strong>Result:</strong> 350 frames at 1080p in <code>namma-space-project/.work/1-competition/images/</code></li>
+</ul>
+
+<p class="subtitle">Phase 2: COLMAP Reconstruction</p>
+<ul>
+<li><strong>Time:</strong> 30-45 minutes</li>
+<li><strong>Result:</strong> Camera poses and 3D point cloud</li>
+<li><strong>What you'll see:</strong> Progress messages showing images being registered</li>
+</ul>
+
+<p class="subtitle">Phase 3: NeRF Training</p>
+<ul>
+<li><strong>Time:</strong> 8-12 hours</li>
+<li><strong>Iterations:</strong> 15,000</li>
+<li><strong>Speed:</strong> ~20-30 steps per minute on CPU</li>
+<li><strong>Monitoring:</strong> View progress at http://localhost:7007</li>
+</ul>
+
+<p><strong>Total Time:</strong> ~9-13 hours from start to finish</p>
+
+<h3>Quality Settings (Competition Mode)</h3>
+<ul>
+<li><strong>Frames:</strong> 350 (high detail)</li>
+<li><strong>Resolution:</strong> 1080p (optimal quality/performance)</li>
+<li><strong>Iterations:</strong> 15,000 (professional quality)</li>
+<li><strong>Ray batch size:</strong> 4,096 (more rays = better quality)</li>
+<li><strong>Samples per ray:</strong> 64 (more samples = smoother rendering)</li>
+</ul>
+
+<hr>
+
+<h2>How to Learn More</h2>
+
+<h3>1. Understanding NeRF</h3>
+<p class="subtitle">Best Resource:</p>
+<ul>
+<li>Original paper: "NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis" (Mildenhall et al., 2020)</li>
+<li>YouTube: Search "NeRF explained" — 3Blue1Brown style explanations</li>
+<li>Website: https://www.matthewtancik.com/nerf</li>
+</ul>
+
+<p class="subtitle">What to focus on:</p>
+<ul>
+<li>Volume rendering</li>
+<li>Ray marching</li>
+<li>Neural networks for 3D</li>
+</ul>
+
+<h3>2. Understanding COLMAP</h3>
+<p class="subtitle">Resources:</p>
+<ul>
+<li>Official docs: https://colmap.github.io/</li>
+<li>YouTube: "Structure from Motion explained"</li>
+<li>Key concepts: Feature matching, bundle adjustment, sparse reconstruction</li>
+</ul>
+
+<p class="subtitle">What to focus on:</p>
+<ul>
+<li>How cameras capture 3D → 2D projections</li>
+<li>Triangulation (finding 3D points from 2D matches)</li>
+<li>SIFT features (Scale-Invariant Feature Transform)</li>
+</ul>
+
+<h3>3. Understanding Gaussian Splatting</h3>
+<p class="subtitle">Resources:</p>
+<ul>
+<li>Paper: "3D Gaussian Splatting for Real-Time Radiance Field Rendering" (2023)</li>
+<li>Website: https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/</li>
+<li>GitHub: https://github.com/graphdeco-inria/gaussian-splatting</li>
+</ul>
+
+<h3>4. Nerfstudio Documentation</h3>
+<p><strong>Official Docs:</strong> https://docs.nerf.studio/</p>
+<ul>
+<li>Installation guides</li>
+<li>Method comparisons (nerfacto vs splatfacto vs others)</li>
+<li>Training tips</li>
+<li>Export options</li>
+</ul>
+
+<h3>5. Computer Vision Basics</h3>
+<p class="subtitle">Free Course:</p>
+<ul>
+<li>Stanford CS231n: Convolutional Neural Networks for Visual Recognition</li>
+<li>YouTube lecture series available</li>
+</ul>
+
+<p class="subtitle">Key Topics:</p>
+<ul>
+<li>Camera models</li>
+<li>Image features</li>
+<li>3D geometry</li>
+<li>Neural networks</li>
+</ul>
+
+<h3>6. Three.js (Web 3D)</h3>
+<p><strong>Official Site:</strong> https://threejs.org/</p>
+<ul>
+<li>Examples and documentation</li>
+<li>Learn WebGL basics</li>
+<li>3D rendering in browsers</li>
+</ul>
+
+<hr>
+
+<h2>Troubleshooting Quick Reference</h2>
+
+<h3>Problem: COLMAP registers too few images</h3>
+<p class="subtitle">Solution:</p>
+<ul>
+<li>Use fewer frames (~300-400)</li>
+<li>Lower resolution (1080p)</li>
+<li>Better lighting when recording</li>
+<li>Slower camera movement</li>
+</ul>
+
+<h3>Problem: Training is too slow</h3>
+<p><strong>Current:</strong> 8-12 hours on CPU</p>
+<p class="subtitle">Options:</p>
+<ul>
+<li>Reduce iterations (10,000 instead of 15,000)</li>
+<li>Reduce ray batch size (3,072 instead of 4,096)</li>
+<li>Use fewer frames (250 instead of 350)</li>
+</ul>
+
+<h3>Problem: Model quality is poor</h3>
+<p class="subtitle">Solutions:</p>
+<ul>
+<li>More frames (400 instead of 350)</li>
+<li>More iterations (20,000 instead of 15,000)</li>
+<li>Better video recording technique</li>
+<li>Check COLMAP registered most frames</li>
+</ul>
+
+<h3>Problem: Web viewer shows black screen</h3>
+<p class="subtitle">Causes:</p>
+<ul>
+<li>Model file too large (>500 MB)</li>
+<li>Browser compatibility (use Chrome)</li>
+<li>File didn't copy correctly</li>
+</ul>
+
+<hr>
+
+<h2>Competition Tips</h2>
+
+<h3>Recording the Best Video</h3>
+<p><strong>1.</strong> <strong>Lighting:</strong> Turn on ALL lights, open curtains</p>
+<p><strong>2.</strong> <strong>Speed:</strong> Walk SLOWLY (1-2 seconds per meter)</p>
+<p><strong>3.</strong> <strong>Coverage:</strong> Walk every path, look in every direction</p>
+<p><strong>4.</strong> <strong>Overlap:</strong> Keep 70-80% of frame overlapping between shots</p>
+<p><strong>5.</strong> <strong>Stability:</strong> Hold phone steady, smooth movements</p>
+<p><strong>6.</strong> <strong>Duration:</strong> 2-5 minutes is ideal</p>
+
+<h3>Getting Best Quality</h3>
+<p><strong>1.</strong> <strong>More frames:</strong> 350-400 frames</p>
+<p><strong>2.</strong> <strong>More iterations:</strong> 15,000-20,000</p>
+<p><strong>3.</strong> <strong>Good COLMAP reconstruction:</strong> Make sure 80%+ of frames are registered</p>
+<p><strong>4.</strong> <strong>Monitor training:</strong> Watch PSNR score increase (higher = better)</p>
+
+<h3>Presenting Your Model</h3>
+<p><strong>1.</strong> <strong>Web viewer:</strong> Interactive navigation in browser</p>
+<p><strong>2.</strong> <strong>Screenshots:</strong> Capture key views</p>
+<p><strong>3.</strong> <strong>Video flythrough:</strong> Record screen while navigating</p>
+<p><strong>4.</strong> <strong>Comparison:</strong> Before/after, or your video vs 3D model</p>
+
+<hr>
+
+<h2>Files & Directories Explained</h2>
+
+<pre><code>namma-space-project/
+├── input-videos/
+│   └── 1.mp4                          # Your competition video (772 MB)
+│
+├── .work/
+│   ├── 1-competition/                 # New processing directory
+│   │   ├── images/                    # Extracted frames (1080p)
+│   │   ├── images_2/                  # Half resolution
+│   │   ├── images_4/                  # Quarter resolution
+│   │   ├── images_8/                  # Eighth resolution
+│   │   ├── colmap/                    # COLMAP reconstruction
+│   │   │   ├── database.db           # Feature database
+│   │   │   └── sparse/0/             # 3D reconstruction
+│   │   ├── transforms.json           # Nerfstudio format
+│   │   └── sparse_pc.ply             # Point cloud
+│   │
+│   └── training-competition/         # Training outputs
+│       └── 1-competition/
+│           └── nerfacto/
+│               └── 2026-09-22_*/
+│                   ├── config.yml    # Model configuration
+│                   └── nerfstudio_models/
+│                       └── step-*.ckpt  # Trained models
+│
+└── web-app/                          # Browser viewer
+    ├── public/models/
+    │   └── demo.splat               # Final model for viewing
+    └── src/                         # React + Three.js code</code></pre>
+
+<hr>
+
+<h2>The Math (For the Curious)</h2>
+
+<h3>Volume Rendering Equation (NeRF)</h3>
+<p>The color you see from a ray is:</p>
+
+<pre><code>C(r) = ∫ T(t) · σ(t) · c(t) dt</code></pre>
+
+<p>Where:</p>
+<ul>
+<li><code>C(r)</code> = final color along ray <code>r</code></li>
+<li><code>T(t)</code> = accumulated transmittance (how much light made it this far)</li>
+<li><code>σ(t)</code> = volume density (is there something here?)</li>
+<li><code>c(t)</code> = color at this point</li>
+<li><code>t</code> = distance along ray</li>
+</ul>
+
+<p class="subtitle">In plain English:</p>
+<p>"The color you see is the sum of all the colors along the ray, weighted by how dense each point is and how much light could reach it."</p>
+
+<h3>Camera Projection (COLMAP)</h3>
+<p>Converting 3D world point to 2D image:</p>
+
+<pre><code>[u, v, 1]ᵀ = K · [R | t] · [X, Y, Z, 1]ᵀ</code></pre>
+
+<p>Where:</p>
+<ul>
+<li><code>[u, v]</code> = pixel coordinates</li>
+<li><code>K</code> = camera intrinsics (focal length, principal point)</li>
+<li><code>[R | t]</code> = camera rotation and translation (where you're standing and looking)</li>
+<li><code>[X, Y, Z]</code> = 3D world point</li>
+</ul>
+
+<p class="subtitle">In plain English:</p>
+<p>"To find where a 3D point appears in your photo, multiply it by your camera's properties and your position/direction."</p>
+
+<hr>
+
+<h2>Next Steps</h2>
+
+<h3>Immediate Actions</h3>
+<p><strong>1.</strong> <strong>Run the training script:</strong></p>
+<pre><code>   ./train-competition.sh</code></pre>
+
+<p><strong>2.</strong> <strong>Monitor progress:</strong></p>
+<ul>
+<li>Open http://localhost:7007 once training starts</li>
+<li>Watch iteration count and PSNR score</li>
+</ul>
+
+<p><strong>3.</strong> <strong>Wait patiently:</strong></p>
+<ul>
+<li>Let it run overnight (8-12 hours)</li>
+<li>Don't close laptop lid (set "Prevent sleep" in System Preferences)</li>
+</ul>
+
+<h3>After Training</h3>
+<p><strong>1.</strong> <strong>View the model:</strong></p>
+<pre><code>   ns-viewer --load-config &lt;path-to-config.yml&gt;</code></pre>
+
+<p><strong>2.</strong> <strong>Export for web:</strong></p>
+<ul>
+<li>Model is already in training directory</li>
+<li>Copy to web-app for browser viewing</li>
+</ul>
+
+<p><strong>3.</strong> <strong>Practice presenting:</strong></p>
+<ul>
+<li>Navigate smoothly</li>
+<li>Show key areas</li>
+<li>Explain the technology</li>
+</ul>
+
+<hr>
+
+<h2>Glossary</h2>
+
+<p><strong>3D Reconstruction:</strong> Building a 3D model from 2D images</p>
+<p><strong>Bundle Adjustment:</strong> Optimizing camera poses and 3D points together</p>
+<p><strong>Camera Intrinsics:</strong> Internal camera properties (focal length, principal point)</p>
+<p><strong>Camera Extrinsics:</strong> Camera position and orientation in 3D space</p>
+<p><strong>COLMAP:</strong> Structure-from-Motion software for 3D reconstruction</p>
+<p><strong>Feature Matching:</strong> Finding the same visual features across multiple images</p>
+<p><strong>Gaussian Splatting:</strong> 3D representation using oriented ellipsoids</p>
+<p><strong>Neural Radiance Field (NeRF):</strong> AI model that learns 3D scenes</p>
+<p><strong>Point Cloud:</strong> Set of 3D points representing a surface</p>
+<p><strong>PSNR:</strong> Peak Signal-to-Noise Ratio (quality metric, higher = better)</p>
+<p><strong>Ray Marching:</strong> Stepping along a ray to sample a 3D volume</p>
+<p><strong>SIFT:</strong> Scale-Invariant Feature Transform (feature detection algorithm)</p>
+<p><strong>Sparse Reconstruction:</strong> Initial 3D structure with relatively few points</p>
+<p><strong>Structure from Motion (SfM):</strong> Computing 3D structure from camera motion</p>
+<p><strong>Volume Rendering:</strong> Rendering technique for semi-transparent 3D volumes</p>
+
+<hr>
+
+<h2>Final Notes</h2>
+
+<p>This project combines:</p>
+<ul>
+<li><strong>Computer Vision</strong> (understanding images and 3D space)</li>
+<li><strong>Machine Learning</strong> (training neural networks)</li>
+<li><strong>Graphics</strong> (rendering 3D scenes)</li>
+<li><strong>Web Development</strong> (making it interactive in browsers)</li>
+</ul>
+
+<p>You're essentially teaching a computer to understand a 3D space just by looking at it from different angles — then letting it show you views you never filmed!</p>
+
+<p><strong>Good luck with Techfest 2026-27!</strong> 🚀</p>
+
+<hr>
+
+<p>*Last Updated: September 22, 2026*</p>
+<p>*Project: Namma Space - 3D Indoor Navigation*</p>
+<p>*Competition: IIT Bombay Techfest 2026-27*</p>
+
+</body>
+</html>

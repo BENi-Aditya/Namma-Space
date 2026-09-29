@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# all done
 # ==============================================================================
 # NAMMA SPACE - RESUME FROM COLMAP
 # Continues from existing COLMAP output
