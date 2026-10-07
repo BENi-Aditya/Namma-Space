@@ -130,6 +130,27 @@
             letter-spacing: 0.05em;
         }
 
+        .save-pos-btn {
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #ffffff;
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.03em;
+            transition: all 0.15s ease;
+        }
+
+        .save-pos-btn:hover {
+            background: #e4e4e7;
+            border-color: #e4e4e7;
+        }
+
         /* Top Mode Toolbar */
         .gizmo-toolbar {
             position: absolute;
@@ -554,6 +575,81 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Navigation HUD Bar (Bottom Center) */
+        .nav-hud {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-mid);
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.75);
+            pointer-events: auto;
+        }
+
+        .nav-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .nav-tag kbd {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-bright);
+            color: var(--text-bright);
+            padding: 1px 5px;
+            font-size: 10px;
+        }
+
+        .nav-tag:not(:last-child)::after {
+            content: "•";
+            margin-left: 10px;
+            color: var(--border-mid);
+        }
+
+        .nav-speed-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-left: 8px;
+            border-left: 1px solid var(--border-mid);
+        }
+
+        .speed-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .speed-slider {
+            width: 75px;
+            accent-color: #ffffff;
+            cursor: pointer;
+            height: 4px;
+        }
+
+        .speed-val {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-bright);
+            min-width: 30px;
+        }
     </style>
 
     <script type="importmap">
@@ -578,25 +674,43 @@
         <select id="model-dropdown" class="model-select" title="Switch 3D Model">
             <option value="your-video">your-video</option>
         </select>
+        <button id="btn-save-position-top" class="save-pos-btn" title="Lock & Save current model position as default">
+            <span>💾 Save Position</span>
+        </button>
         <div class="saved-badge" id="saved-badge">
-            <span id="saved-badge-text">AUTO-SAVED</span>
+            <span id="saved-badge-text">SAVED</span>
         </div>
     </div>
 
     <!-- Mode Toolbar (Top Center) -->
     <div class="gizmo-toolbar">
-        <button class="tool-btn active" id="mode-view" title="Camera Orbit Mode (Q)">
-            <span>Orbit</span> <kbd>Q</kbd>
+        <button class="tool-btn active" id="mode-view" title="Camera Orbit Mode (1)">
+            <span>Orbit</span> <kbd>1</kbd>
         </button>
-        <button class="tool-btn" id="mode-rotate" title="3D Rotation Ring Gizmo (E)">
-            <span>Rotate</span> <kbd>E</kbd>
+        <button class="tool-btn" id="mode-rotate" title="3D Rotation Ring Gizmo (2)">
+            <span>Rotate</span> <kbd>2</kbd>
         </button>
-        <button class="tool-btn" id="mode-translate" title="3D Movement Gizmo (W)">
-            <span>Move</span> <kbd>W</kbd>
+        <button class="tool-btn" id="mode-translate" title="3D Movement Gizmo (3)">
+            <span>Move</span> <kbd>3</kbd>
         </button>
-        <button class="tool-btn" id="mode-scale" title="3D Scale Gizmo (R)">
-            <span>Scale</span> <kbd>R</kbd>
+        <button class="tool-btn" id="mode-scale" title="3D Scale Gizmo (4)">
+            <span>Scale</span> <kbd>4</kbd>
         </button>
+    </div>
+
+    <!-- Navigation HUD (Bottom Center) -->
+    <div class="nav-hud">
+        <div class="nav-tag"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Fly</div>
+        <div class="nav-tag"><kbd>Shift</kbd> Sprint</div>
+        <div class="nav-tag"><kbd>Space</kbd>/<kbd>E</kbd> Up</div>
+        <div class="nav-tag"><kbd>Q</kbd>/<kbd>C</kbd> Down</div>
+        <div class="nav-tag"><kbd>Shift</kbd>+<kbd>C</kbd> Reset Cam</div>
+        <div class="nav-tag"><kbd>Ctrl</kbd>+<kbd>Z</kbd> Restore Pos</div>
+        <div class="nav-speed-control">
+            <span class="speed-label">Speed:</span>
+            <input type="range" id="hud-cam-speed" min="0.5" max="12.0" step="0.5" value="3.0" class="speed-slider" title="Camera Fly Speed">
+            <span id="hud-cam-speed-val" class="speed-val">3.0x</span>
+        </div>
     </div>
 
     <!-- Technical Status HUD (Bottom Left) -->
@@ -649,8 +763,11 @@
                 <button class="btn btn-outline" id="btn-rot-z-neg">Rot Z -90°</button>
             </div>
 
-            <div class="section-title">Spatial Alignment</div>
+            <div class="section-title">Spatial Alignment & Position Locking</div>
             <div class="btn-stack">
+                <button class="btn btn-primary" id="btn-save-pos-sidebar" style="background: #ffffff; color: #000000; font-weight: 700; margin-bottom: 4px;">
+                    <span>💾 Save Position & Lock</span>
+                </button>
                 <button class="btn" id="btn-snap-floor">
                     <span>Snap Bottom to Floor (Y = 0)</span>
                 </button>
@@ -802,6 +919,15 @@
 
         <!-- Tab 4: Display & Appearance -->
         <div class="tab-content" id="tab-view">
+            <div class="section-title">Camera & Traversal</div>
+            <div class="slider-group">
+                <div class="slider-row">
+                    <div class="slider-label">Fly Speed</div>
+                    <input type="range" class="slider-input" id="slider-cam-speed" min="0.5" max="12.0" step="0.5" value="3.0">
+                    <span id="val-cam-speed" class="slider-val">3.0x</span>
+                </div>
+            </div>
+
             <div class="section-title">Viewport Options</div>
             <div class="switch-row">
                 <span>Wireframe Geometry</span>
@@ -881,6 +1007,96 @@
         let currentAssetType = 'stl';
         let saveStateTimeout = null;
 
+        // WASD Traversal Navigation Physics & Damping
+        const keysPressed = {};
+        let lastFrameTime = performance.now();
+        let cameraBaseSpeed = 3.0; // Slider controlled units/sec
+        const currentVelocity = new THREE.Vector3(0, 0, 0);
+        const accelerationRate = 16.0; // Exponential velocity smoothing rate
+
+        function resetCameraPosition() {
+            currentVelocity.set(0, 0, 0);
+            fitCameraToModel();
+            showToast('Camera View Reset (Shift+C)');
+        }
+
+        function restoreSavedModelPosition() {
+            if (!modelGroup) return;
+            const saved = loadSavedModelState();
+            if (saved && saved.position) {
+                modelGroup.position.set(saved.position.x, saved.position.y, saved.position.z);
+                if (saved.rotation) {
+                    modelGroup.rotation.set(saved.rotation.x, saved.rotation.y, saved.rotation.z);
+                }
+                if (saved.scale) {
+                    modelGroup.scale.set(saved.scale, saved.scale, saved.scale);
+                }
+                syncUIFromModelTransforms();
+                updateClippingPlanes();
+                showToast(`Restored Saved Position (Ctrl+Z)`);
+            } else {
+                modelGroup.position.set(0, 0, 0);
+                modelGroup.rotation.set(0, 0, 0);
+                modelGroup.scale.set(1, 1, 1);
+                snapBottomToFloor();
+                syncUIFromModelTransforms();
+                updateClippingPlanes();
+                showToast(`Model Position Reset to Default (Ctrl+Z)`);
+            }
+        }
+
+        function updateCameraTraversal(delta) {
+            if (!camera || !orbitControls) return;
+
+            const isW = keysPressed['KeyW'] || keysPressed['w'];
+            const isS = keysPressed['KeyS'] || keysPressed['s'];
+            const isA = keysPressed['KeyA'] || keysPressed['a'];
+            const isD = keysPressed['KeyD'] || keysPressed['d'];
+            const isUp = keysPressed['Space'] || keysPressed['KeyE'] || keysPressed['e'];
+            const isDown = (keysPressed['KeyC'] || keysPressed['c'] || keysPressed['KeyQ'] || keysPressed['q']) && !keysPressed['shift'];
+            const isSprint = keysPressed['ShiftLeft'] || keysPressed['ShiftRight'] || keysPressed['shift'];
+
+            const targetVelocity = new THREE.Vector3();
+
+            if (isW || isS || isA || isD || isUp || isDown) {
+                // Forward vector from camera look direction
+                const forward = new THREE.Vector3();
+                camera.getWorldDirection(forward);
+
+                // Right vector perpendicular to forward and world up
+                const right = new THREE.Vector3();
+                right.crossVectors(forward, camera.up).normalize();
+
+                const moveDir = new THREE.Vector3();
+                if (isW) moveDir.add(forward);
+                if (isS) moveDir.sub(forward);
+                if (isD) moveDir.add(right);
+                if (isA) moveDir.sub(right);
+
+                if (moveDir.lengthSq() > 0) {
+                    moveDir.normalize();
+                }
+
+                const effectiveSpeed = cameraBaseSpeed * (isSprint ? 2.5 : 1.0);
+                targetVelocity.addScaledVector(moveDir, effectiveSpeed);
+
+                // Elevation (Up / Down)
+                if (isUp) targetVelocity.y += effectiveSpeed * 0.85;
+                if (isDown) targetVelocity.y -= effectiveSpeed * 0.85;
+            }
+
+            // Silky smooth exponential velocity damping
+            const lerpFactor = 1.0 - Math.exp(-accelerationRate * delta);
+            currentVelocity.lerp(targetVelocity, lerpFactor);
+
+            // Apply smooth position update if moving
+            if (currentVelocity.lengthSq() > 0.00001) {
+                const moveStep = currentVelocity.clone().multiplyScalar(delta);
+                camera.position.add(moveStep);
+                orbitControls.target.add(moveStep);
+            }
+        }
+
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -901,7 +1117,7 @@
             return `namma_space_state_${activeModelId}`;
         }
 
-        function saveModelState() {
+        function saveModelState(isManual = false) {
             if (!modelGroup) return;
 
             const state = {
@@ -939,7 +1155,10 @@
             try {
                 localStorage.setItem(getStorageKey(), JSON.stringify(state));
                 const badgeText = document.getElementById('saved-badge-text');
-                badgeText.innerText = 'AUTO-SAVED';
+                badgeText.innerText = isManual ? 'LOCKED // SAVED' : 'SAVED';
+                if (isManual) {
+                    showToast(`Position Saved & Locked for ${activeModelId}`);
+                }
             } catch (e) {
                 console.error('Failed to save state to localStorage:', e);
             }
@@ -1421,11 +1640,68 @@
             document.getElementById('mode-scale').addEventListener('click', () => setGizmoMode('scale'));
 
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'q' || e.key === 'Q') setGizmoMode('view');
-                if (e.key === 'w' || e.key === 'W') setGizmoMode('translate');
-                if (e.key === 'e' || e.key === 'E') setGizmoMode('rotate');
-                if (e.key === 'r' || e.key === 'R') setGizmoMode('scale');
+                if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+                // Ctrl + Z or Cmd + Z -> Restore Saved Model Position
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.code === 'KeyZ')) {
+                    e.preventDefault();
+                    restoreSavedModelPosition();
+                    return;
+                }
+
+                // Shift + C -> Reset Camera View
+                if ((e.code === 'KeyC' || e.key === 'c' || e.key === 'C') && e.shiftKey) {
+                    e.preventDefault();
+                    resetCameraPosition();
+                    return;
+                }
+
+                keysPressed[e.code] = true;
+                keysPressed[e.key.toLowerCase()] = true;
+                if (e.shiftKey) keysPressed['shift'] = true;
+
+                if (e.key === '1') setGizmoMode('view');
+                if (e.key === '2') setGizmoMode('rotate');
+                if (e.key === '3') setGizmoMode('translate');
+                if (e.key === '4') setGizmoMode('scale');
             });
+
+            window.addEventListener('keyup', (e) => {
+                keysPressed[e.code] = false;
+                keysPressed[e.key.toLowerCase()] = false;
+                if (!e.shiftKey) keysPressed['shift'] = false;
+            });
+
+            window.addEventListener('blur', () => {
+                for (const k in keysPressed) {
+                    keysPressed[k] = false;
+                }
+            });
+
+            // Camera Speed Sync (HUD + Sidebar)
+            const setCameraFlySpeed = (speedVal) => {
+                cameraBaseSpeed = Math.max(0.2, parseFloat(speedVal));
+                const text = `${cameraBaseSpeed.toFixed(1)}x`;
+                const hudSlider = document.getElementById('hud-cam-speed');
+                const hudVal = document.getElementById('hud-cam-speed-val');
+                const sideSlider = document.getElementById('slider-cam-speed');
+                const sideVal = document.getElementById('val-cam-speed');
+
+                if (hudSlider) hudSlider.value = cameraBaseSpeed;
+                if (hudVal) hudVal.innerText = text;
+                if (sideSlider) sideSlider.value = cameraBaseSpeed;
+                if (sideVal) sideVal.innerText = text;
+            };
+
+            const hudCamSpeed = document.getElementById('hud-cam-speed');
+            if (hudCamSpeed) {
+                hudCamSpeed.addEventListener('input', (e) => setCameraFlySpeed(e.target.value));
+            }
+
+            const sideCamSpeed = document.getElementById('slider-cam-speed');
+            if (sideCamSpeed) {
+                sideCamSpeed.addEventListener('input', (e) => setCameraFlySpeed(e.target.value));
+            }
 
             const rotateBy = (axis, angleDeg) => {
                 if (!modelGroup) return;
@@ -1444,6 +1720,12 @@
             document.getElementById('btn-rot-y-neg').addEventListener('click', () => rotateBy('y', -90));
             document.getElementById('btn-rot-z-pos').addEventListener('click', () => rotateBy('z', 90));
             document.getElementById('btn-rot-z-neg').addEventListener('click', () => rotateBy('z', -90));
+
+            const savePositionHandler = () => saveModelState(true);
+            const btnSaveTop = document.getElementById('btn-save-position-top');
+            if (btnSaveTop) btnSaveTop.addEventListener('click', savePositionHandler);
+            const btnSaveSide = document.getElementById('btn-save-pos-sidebar');
+            if (btnSaveSide) btnSaveSide.addEventListener('click', savePositionHandler);
 
             document.getElementById('btn-snap-floor').addEventListener('click', snapBottomToFloor);
             document.getElementById('btn-center-model').addEventListener('click', centerAtOrigin);
@@ -1551,6 +1833,13 @@
 
         function animate() {
             requestAnimationFrame(animate);
+
+            const now = performance.now();
+            const delta = Math.min((now - lastFrameTime) / 1000, 0.1);
+            lastFrameTime = now;
+
+            updateCameraTraversal(delta);
+
             orbitControls.update();
             renderer.render(scene, camera);
         }
