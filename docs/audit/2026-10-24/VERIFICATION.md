@@ -68,3 +68,7 @@ Reviewed changes are staged for the owner-requested Namma-Space repository. Full
 ## Staging correction
 
 Review caught output/site-final in the staged set because the initial ignore matched only output/site. The final bundle was unstaged without deleting it, and output/ is now ignored as a whole. No generated bundle was committed or transmitted by that initial staging. Binary document/model attributes avoid treating PDFs/PLY as text diffs; vendored/history formatting is preserved. The saved smoke log has ANSI terminal controls and trailing spaces normalized for readable review.
+
+## Checked-in runtime correction
+
+The original Python lib/ ignore rule also excluded the app's vendored browser runtime. Final tracked-source review caught this before publication. Explicit app-runtime exceptions were added so Three.js, GaussianSplats3D, required addons and their licence files are included in Git. Local-file checks alone would not have detected a missing runtime on fresh checkout.

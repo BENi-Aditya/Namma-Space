@@ -121,3 +121,7 @@ test/data/*.mp4
 
 # All locally generated release/deployment bundles
 output/
+
+# Required checked-in browser runtime (overrides Python lib/ exclusion)
+!apps/viewer/lib/
+!apps/viewer/lib/**
