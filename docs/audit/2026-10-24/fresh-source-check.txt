@@ -1,0 +1,6 @@
+Fresh tracked-source export: required viewer runtime/licences and silent sample present.
+Five regression tests pass.
+Missing or unsafe asset: models/IMG_2008/splat.ply
+Missing or unsafe asset: models/IMG_2008/splat.ply
+Missing or unsafe asset: models/2-run/pointcloud/sparse_point_cloud.ply
+Large untracked Gaussian and 2-run outputs need artifact distribution; README documents this limitation.

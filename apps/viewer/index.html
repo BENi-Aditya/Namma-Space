@@ -1070,6 +1070,7 @@
         let activeModelId = 'IMG_2008';
         let currentAssetType = 'gaussian';
         let saveStateTimeout = null;
+        let sceneNotice = '';
         let assetLoading = false;
         let dragLook = false, draggingLook = false;
         const status = message => { document.getElementById('viewer-status').textContent = message; };
@@ -1173,7 +1174,7 @@
         function hideLoader() {
             assetLoading = false;
             document.getElementById('model-dropdown').disabled = false;
-            status('Drag to orbit · WASD move · Enter walkthrough for mouse look. Reconstruction units are uncalibrated.');
+            status(sceneNotice || 'Drag to orbit · WASD move · Enter walkthrough for mouse look. Reconstruction units are uncalibrated.');
             document.getElementById('loader').style.display = 'none';
         }
 
@@ -1266,11 +1267,20 @@
                     if (!Array.isArray(data.models) || !data.models.length) throw new Error('No models in manifest');
                     if (data.models && data.models.length > 0) {
                         availableModels = data.models;
+                        const assetKeys = { gaussian: 'splat', stl: 'stl', ply: 'ply_mesh', pointcloud: 'pointcloud' };
+                        await Promise.all(availableModels.map(async model => {
+                            const asset = model[assetKeys[model.defaultAsset || 'gaussian']];
+                            try {
+                                const response = asset ? await fetch(asset, { method: 'HEAD' }) : null;
+                                model.available = Boolean(response && (response.ok || response.status === 405));
+                            } catch { model.available = false; }
+                        }));
                         dropdown.innerHTML = '';
                         availableModels.forEach(m => {
                             const opt = document.createElement('option');
                             opt.value = m.id;
-                            opt.textContent = `${m.name} (${m.method})`;
+                            opt.textContent = `${m.name} (${m.method})${m.available ? '' : ' - asset missing'}`;
+                            opt.disabled = !m.available;
                             dropdown.appendChild(opt);
                         });
 
@@ -1280,6 +1290,12 @@
                             activeModelId = paramModel;
                         } else if (data.latest) {
                             activeModelId = data.latest;
+                        }
+                        if (!availableModels.find(model => model.id === activeModelId)?.available) {
+                            const fallback = availableModels.find(model => model.available);
+                            if (!fallback) throw new Error('No model assets found. Restore the model archive; see README.');
+                            sceneNotice = `Requested model asset is missing. Showing ${fallback.name} as a fallback; restore the preferred export for the full demo.`;
+                            activeModelId = fallback.id;
                         }
                         dropdown.value = activeModelId;
                     }
