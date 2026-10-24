@@ -4,7 +4,7 @@
 
 Use Python 3.10+ and run `./start-viewer.sh` from the repository; the launcher also works from another working directory. It serves apps/viewer only on 127.0.0.1. No conda, Node or GPU is needed to serve files. Rendering requires a WebGL2 desktop browser with sufficient memory. IMG_2008 is about 154 MiB on disk; download size and load latency matter. Neither 60 fps nor a fixed load time has been established.
 
-On a fresh clone, restore the model archive (not yet published) into namma-space-project/output-models/models with the relative paths in apps/viewer/models.json. Run `python3 scripts/check_project.py` to identify missing models. The source repository by itself cannot reproduce the externally trained IMG_2008 asset: its source capture/config/checkpoint and contributor details remain missing. A source sample is in test/data/your-video.mov locally; its hash is documented in test/assets.json. It is the older baseline input, not the IMG_2008 source.
+A fresh clone selects a tracked fallback mesh when preferred assets are absent and displays a warning. To view the preferred Gaussian reconstruction, restore the model archive (not yet published) into namma-space-project/output-models/models with the relative paths in apps/viewer/models.json. Run `python3 scripts/check_project.py` to identify missing models. The source repository by itself cannot reproduce the externally trained IMG_2008 asset: its source capture/config/checkpoint and contributor details remain missing. A source sample is in test/data/your-video.mov locally; its hash is documented in test/assets.json. It is the older baseline input, not the IMG_2008 source.
 
 ## Reconstruction environment
 

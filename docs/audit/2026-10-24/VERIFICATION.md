@@ -72,3 +72,11 @@ Review caught output/site-final in the staged set because the initial ignore mat
 ## Checked-in runtime correction
 
 The original Python lib/ ignore rule also excluded the app's vendored browser runtime. Final tracked-source review caught this before publication. Explicit app-runtime exceptions were added so Three.js, GaussianSplats3D, required addons and their licence files are included in Git. Local-file checks alone would not have detected a missing runtime on fresh checkout.
+
+## Fresh-checkout browser acceptance and publication
+
+A fresh git archive of commit f75ce5b was served at localhost without the untracked IMG_2008 and 2-run outputs. The browser opened the tracked 1-emergency fallback mesh, disabled missing assets and visibly explained the fallback. Screenshot: viewer-fresh-checkout.png. This proves source/runtime availability and fallback rendering, not indoor-room quality.
+
+Git transport successfully pushed fd3829b and 9022907 to https://github.com/BENi-Aditya/Namma-Space main (starting from 2c97f21) without force. GitHub CLI sign-in was unnecessary because Git's configured credential helper supported the authorized push. The fallback fix and final verification documents are included in the subsequent publication. Check remote HEAD against local HEAD after the final push.
+
+Outstanding external work: select/record a connected indoor room, confirm IMG_2008 provenance if retaining it, run and assess a full Mac reconstruction, deploy a reviewed model, record the final 3-5 minute walkthrough, finalize draft documents, verify Drive permissions and submit via portal. The source sample is diagnostic tabletop content and must not be presented as a completed room capture.

@@ -17,7 +17,7 @@ Requires Python 3.10+ and a desktop WebGL2 browser. No npm install is needed for
 
 Select a model, drag to orbit, use WASD to move, Space/E up and Q/C down. **Enter walkthrough** requests first-person mouse look; Escape releases it. Some embedded browsers block pointer lock: use an ordinary desktop browser, or the drag/WASD fallback. **Reset view** recovers the overview. **Editor** exposes the preserved alignment, crop and asset controls. Alignment is stored in this browser only; it is not a portable calibrated scene setup. Geometry is in uncalibrated model units. No obstacle avoidance is implemented.
 
-Models are local generated artifacts, not normal Git source. The default IMG_2008 export is 161,370,667 bytes and contains 650,682 Gaussian vertices. The manifest lists four local scenes. A fresh clone needs the original artifacts restored under `namma-space-project/output-models/models/`; do not expect a Gaussian asset to arrive through Git. See [reproduction](docs/REPRODUCTION.md) and [asset provenance](test/README.md).
+Models are local generated artifacts, not normal Git source. The default IMG_2008 export is 161,370,667 bytes and contains 650,682 Gaussian vertices. The manifest lists four local scenes. A fresh clone automatically opens an older tracked mesh fallback and explains the missing preferred export. For the Gaussian demo, restore the original artifacts under `namma-space-project/output-models/models/`; do not expect a Gaussian asset to arrive through Git. See [reproduction](docs/REPRODUCTION.md) and [asset provenance](test/README.md).
 
 ## Reconstruct
 
