@@ -70,14 +70,16 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(json.loads((self.state/(job['id']+'.json')).read_text())['state'],'cancelled')
     def test_upload_validates_video_and_queues(self):
         probe=type('Result',(),{'returncode':0,'stdout':'{"streams":[{"codec_type":"video"}]}'})()
-        with patch.object(admin.shutil,'which',return_value='/tool'),patch.object(admin.subprocess,'run',return_value=probe):
+        usage=type('Usage',(),{'free':6*1024**3})()
+        with patch.object(admin.shutil,'disk_usage',return_value=usage),patch.object(admin.shutil,'which',return_value='/tool'),patch.object(admin.subprocess,'run',return_value=probe):
             req=Request(self.url+'/api/upload?filename=test.mp4&preset=preview',data=b'fake video',headers={'X-Namma-Token':admin.TOKEN})
             with urlopen(req) as response:job=json.load(response)
         self.assertEqual(job['state'],'queued');self.assertEqual(job['iterations'],1000)
         self.assertEqual(Path(job['video']).read_bytes(),b'fake video')
     def test_invalid_video_leaves_no_job_or_upload(self):
         probe=type('Result',(),{'returncode':1,'stdout':''})()
-        with patch.object(admin.shutil,'which',return_value='/tool'),patch.object(admin.subprocess,'run',return_value=probe):
+        usage=type('Usage',(),{'free':6*1024**3})()
+        with patch.object(admin.shutil,'disk_usage',return_value=usage),patch.object(admin.shutil,'which',return_value='/tool'),patch.object(admin.subprocess,'run',return_value=probe):
             with self.assertRaises(HTTPError) as error:
                 urlopen(Request(self.url+'/api/upload?filename=bad.mp4',data=b'not a video',headers={'X-Namma-Token':admin.TOKEN}))
         error.exception.close()

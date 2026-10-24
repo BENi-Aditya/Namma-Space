@@ -131,3 +131,8 @@ output/
 
 # Local manifest synchronization
 apps/viewer/models.lock
+
+# Locally generated viewer exports and machine-specific environment artifacts
+/apps/viewer/models/
+experiments/legacy-react-viewer/public/models/splat.ply
+CUsersvakka/

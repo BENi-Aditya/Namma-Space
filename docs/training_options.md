@@ -1,108 +1,46 @@
-# 3D Training Speed Options - Choose Your Speed! 🚀
+# Training options
 
-## Current Situation
-- Your previous training: **20-30 hours** (30,000 iterations, CPU)
-- Problem: Way too slow for competition deadline
+Use the supported reconstruction entry point from the repository root. It runs
+in dry-run mode unless `--execute` is supplied and refuses to overwrite an
+existing run or model ID.
 
-## ✅ RECOMMENDED: Ultra-Fast Training (2-4 hours)
+## Splatfacto (Gaussian splats)
 
-**Script:** `./train-ultra-fast.sh`
+Splatfacto requires a working CUDA environment with the installed
+Nerfstudio/gsplat dependencies. Replace the video path and run ID with your
+local input and a new, unique ID:
 
-**Settings:**
-- 3,000 iterations (10x fewer)
-- Optimized ray sampling
-- CPU training (stable, no GPU issues)
-- Auto-exports model when done
-
-**Expected time:** 2-4 hours
-**Quality:** Excellent for competition (80-90% of full quality)
-
-**Run this:**
 ```bash
-cd "/Users/tripathd/Downloads/Manual Library/Projects/3D"
-./train-ultra-fast.sh
+bash scripts/pipeline/process_video.sh path/to/video.mp4 room-splat \
+  --method splatfacto --device cuda --iterations 7000
 ```
 
----
+Review the printed commands and output paths first. Add `--execute` only when
+you are ready to start processing and training:
 
-## Option 2: Balanced Training (4-6 hours)
-
-**Script:** `./train-fastest-cpu.sh`
-
-**Settings:**
-- 5,000 iterations
-- Slightly better quality than ultra-fast
-- CPU training
-
-**Expected time:** 4-6 hours
-**Quality:** Very good for competition (85-95% of full quality)
-
----
-
-## Option 3: Original (NOT RECOMMENDED - 20-30 hours)
-
-**What you were running:**
-- 30,000 iterations
-- Full quality but takes forever
-
-**Expected time:** 20-30 hours
-**Quality:** 100% but overkill for Round 1
-
----
-
-## 📊 Comparison Table
-
-| Option | Time | Quality | Best For |
-|--------|------|---------|----------|
-| **Ultra-Fast** ⚡ | 2-4 hrs | 85% | Quick results, competition Round 1 |
-| **Balanced** | 4-6 hrs | 90% | Better quality, still reasonable time |
-| **Original** ❌ | 20-30 hrs | 100% | Only if you have days to wait |
-
----
-
-## 🎯 MY RECOMMENDATION
-
-**Use Ultra-Fast (3,000 iterations)**
-
-Why?
-- ✅ Finishes in time for competition
-- ✅ Quality is MORE than enough for Round 1
-- ✅ Can always retrain with more iterations later
-- ✅ Gets you a working demo TODAY
-
----
-
-## How to Start
-
-1. **Stop current training** (if still running):
-   - Press `Ctrl+C` in terminal
-
-2. **Start ultra-fast training**:
-   ```bash
-   cd "/Users/tripathd/Downloads/Manual Library/Projects/3D"
-   ./train-ultra-fast.sh
-   ```
-
-3. **Wait 2-4 hours** ☕
-
-4. **Done!** Model auto-exports and copies to web viewer
-
----
-
-## After Training Completes
-
-Launch web viewer:
 ```bash
-cd namma-space-project/web-app
-npm install  # (first time only)
-npm run dev
+bash scripts/pipeline/process_video.sh path/to/video.mp4 room-splat \
+  --method splatfacto --device cuda --iterations 7000 --execute
 ```
 
-Open: http://localhost:5173
+## Nerfacto (NeRF)
 
-Navigate with WASD + mouse! 🎮
+Nerfacto can use a device supported by the installed PyTorch build. For an
+NVIDIA CUDA environment:
 
----
+```bash
+bash scripts/pipeline/process_video.sh path/to/video.mp4 room-nerf \
+  --method nerfacto --device cuda --iterations 7000
+```
 
-**Created:** September 13, 2026, 3:34 PM IST
-**For:** Namma Space - IIT Bombay Techfest Competition
+After reviewing the dry-run output, add `--execute` to start the run. Use
+`--device mps` only when PyTorch reports MPS available, or `--device cpu` when
+slower CPU training is intended.
+
+The pipeline processes the input video and runs COLMAP on CPU, then trains
+using the selected device. Its default iteration count is an engineering
+smoke preset, not a quality or completion-time guarantee. Training requires
+the corresponding Nerfstudio commands and FFmpeg/COLMAP tools to be installed.
+The exported model is written to the local `apps/viewer/models/<run-id>/`
+directory and registered in the local viewer manifest; generated model assets
+are not source files and should not be committed.

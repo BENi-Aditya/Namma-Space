@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check supported app integrity without running legacy or compute-heavy scripts."""
 import ast
+import argparse
 import json
 from pathlib import Path
 import re
@@ -10,7 +11,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--allow-missing-assets', action='store_true',
+                        help='Warn instead of failing when local model assets are absent')
+    args = parser.parse_args()
     errors = []
+    warnings = []
     app = ROOT / 'apps/viewer'
     data = json.loads((app / 'models.json').read_text())
     ids = [model['id'] for model in data['models']]
@@ -22,8 +28,14 @@ def main():
             asset = model.get(key)
             if asset:
                 count += 1
-                if not asset.startswith('models/') or '..' in Path(asset).parts or not (app / asset).is_file():
+                if not asset.startswith('models/') or '..' in Path(asset).parts:
                     errors.append(f'Missing or unsafe asset: {asset}')
+                elif not (app / asset).is_file():
+                    message = f'Missing local model asset: {asset}'
+                    if args.allow_missing_assets:
+                        warnings.append(message)
+                    else:
+                        errors.append(f'Missing or unsafe asset: {asset}')
     html = (app / 'viewer.html').read_text()
     for filename in ['three.module.js', 'gaussian-splats-3d.module.js',
                      'three-addons/controls/OrbitControls.js', 'three-addons/controls/TransformControls.js',
@@ -44,6 +56,8 @@ def main():
     for relative in ['start-admin.sh', 'start-viewer.sh', 'scripts/pipeline/process_video.sh']:
         if subprocess.run(['bash', '-n', str(ROOT / relative)], capture_output=True).returncode:
             errors.append(f'Shell syntax error: {relative}')
+    for warning in warnings:
+        print(f'WARNING: {warning}')
     if errors:
         print('\n'.join(errors))
         return 1
