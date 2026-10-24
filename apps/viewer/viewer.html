@@ -1748,6 +1748,16 @@
             const box = new THREE.Box3();
             if (baseBoundingBox && !baseBoundingBox.isEmpty()) {
                 box.copy(baseBoundingBox);
+                if (isCroppingEnabled) {
+                    for (const axis of ['x', 'y', 'z']) {
+                        const low = Number(document.getElementById(`crop-${axis}-min`).value) / 100;
+                        const high = Number(document.getElementById(`crop-${axis}-max`).value) / 100;
+                        const start = baseBoundingBox.min[axis];
+                        const length = baseBoundingBox.max[axis] - start;
+                        box.min[axis] = start + length * Math.min(low, high);
+                        box.max[axis] = start + length * Math.max(low, high);
+                    }
+                }
                 box.applyMatrix4(modelGroup.matrixWorld);
             } else {
                 box.setFromObject(modelGroup);

@@ -16,7 +16,66 @@
       ],
       "defaultAsset": "gaussian",
       "units": "uncalibrated reconstruction units",
-      "provenance": "Existing externally trained export; capture, contributor and training configuration need confirmation."
+      "provenance": "Existing externally trained export; capture, contributor and training configuration need confirmation.",
+      "viewState": {
+        "modelId": "IMG_2008",
+        "version": 1,
+        "camera": {
+          "position": [
+            1.0357520250025718,
+            1.3574371348948306,
+            2.6009088708648256
+          ],
+          "quaternion": [
+            -0.15363250102508028,
+            0.18677866296884865,
+            0.029586916313458268,
+            0.9698635986938619
+          ],
+          "target": [
+            -0.005636701489262652,
+            0.4462219992144758,
+            -0.0025629453647608713
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": true,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": -1.5470967508097737,
+          "y": 0.05207063226553538,
+          "z": -0.0009563210125732366
+        },
+        "position": {
+          "x": 0,
+          "y": 0.554344840961158,
+          "z": 0
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "48",
+          "xMax": "52",
+          "yMin": "48",
+          "yMax": "52",
+          "zMin": "47",
+          "zMax": "52",
+          "enabled": true,
+          "showHelper": true
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": true
+        }
+      }
     },
     {
       "id": "1-emergency",
