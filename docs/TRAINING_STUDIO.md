@@ -38,3 +38,11 @@ According to the supplied competition brief (pages 3 and 5), paste a **Google Dr
 - Consolidate additional links into one master PDF or Google Doc.
 
 Use Team ID TM-C2093A5006E. Round 1 date: 31 October 2026; no cutoff timezone is specified in the supplied PDF. A localhost URL cannot be opened by judges. Record the better room video, train and visually review it, deploy the static viewer, replace draft placeholders and test every shared link in a signed-out browser before submission. Existing submission PDFs remain drafts.
+
+## Locked model views
+
+In the viewer, open Editor, arrange the model/crop and frame the camera, then press **Save Position & Lock**. Wait for **LOCKED // SAVED TO DISK**. This explicitly stores the camera position, orientation, projection and orbit target; model translation, rotation and scale; crop limits and toggles; selected asset; material, grid, lighting and movement speed. The model manifest owns the default, so both local viewer ports and the admin library load the same configuration. Subsequent edits do not replace it until Save is pressed again. Saving requires the local server; a hosted static viewer displays the packaged default but cannot write to the server.
+
+Old browser-only saves preserve alignment and crop but contain no camera viewpoint. On the updated viewer, frame the camera once and Save to create the full default. Old tabs must be refreshed to get the new button behavior. Keeping an old tab open as a reference can help. The stored camera uses the current viewport aspect ratio when opened on a differently sized screen. Rebuild/redeploy the static package after changing saved defaults.
+
+Verification: 14 Python tests pass, including durable view round-trip and invalid-state rejection; `node test/test_view_state.cjs` verifies camera restore, manifest precedence over stale browser data, and protection from unsaved edits. An isolated browser model was saved with 90-degree X rotation and 1% X-min crop, then changed to 2% without saving; reload restored the locked 1% crop. Production model defaults were not changed by the test.

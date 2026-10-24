@@ -1182,11 +1182,20 @@
             return `namma_space_state_${activeModelId}`;
         }
 
-        function saveModelState(isManual = false) {
-            if (!modelGroup) return;
+        async function saveModelState(isManual = false) {
+            if (!modelGroup || assetLoading) return;
 
+            const savedTarget = camera.getWorldDirection(new THREE.Vector3())
+                .multiplyScalar(Math.max(camera.position.distanceTo(orbitControls.target), 0.1)).add(camera.position);
             const state = {
                 modelId: activeModelId,
+                version: 1,
+                camera: {
+                    position: camera.position.toArray(), quaternion: camera.quaternion.toArray(),
+                    target: savedTarget.toArray(), fov: camera.fov,
+                    near: camera.near, far: camera.far, zoom: camera.zoom
+                },
+                display: { grid: gridHelper.visible, speed: document.getElementById('hud-cam-speed').value, light: document.getElementById('slider-light').value },
                 rotation: {
                     x: modelGroup.rotation.x,
                     y: modelGroup.rotation.y,
@@ -1217,38 +1226,62 @@
                 }
             };
 
+            const badgeText = document.getElementById('saved-badge-text');
+            if (!isManual) { badgeText.innerText = 'UNSAVED CHANGES'; return; }
+            clearTimeout(saveStateTimeout);
+            const model = availableModels.find(m => m.id === state.modelId);
             try {
-                localStorage.setItem(getStorageKey(), JSON.stringify(state));
-                const badgeText = document.getElementById('saved-badge-text');
-                badgeText.innerText = isManual ? 'LOCKED // SAVED' : 'SAVED';
-                if (isManual) {
-                    showToast(`Position Saved & Locked for ${activeModelId}`);
-                }
-            } catch (e) {
-                console.error('Failed to save state to localStorage:', e);
+                const statusResponse = await fetch('/api/status');
+                if (!statusResponse.ok) throw new Error('Local save server unavailable');
+                const {token} = await statusResponse.json();
+                const response = await fetch('/api/view-state', {
+                    method: 'POST', headers: {'Content-Type':'application/json', 'X-Namma-Token':token},
+                    body: JSON.stringify({id:state.modelId, state})
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Save failed');
+                model.viewState = state;
+                try { localStorage.setItem(getStorageKey(), JSON.stringify(state)); } catch {}
+                badgeText.innerText = 'LOCKED // SAVED TO DISK';
+                showToast('Default view saved: camera, alignment and crop.');
+            } catch (error) {
+                badgeText.innerText = 'NOT SAVED';
+                showToast(`Could not save default: ${error.message}. Open the local training studio server.`);
             }
         }
 
         function queueSaveState() {
-            const badgeText = document.getElementById('saved-badge-text');
-            badgeText.innerText = 'SAVING...';
-            clearTimeout(saveStateTimeout);
-            saveStateTimeout = setTimeout(saveModelState, 300);
+            document.getElementById('saved-badge-text').innerText = 'UNSAVED CHANGES';
         }
 
         function loadSavedModelState() {
-            try {
-                const raw = localStorage.getItem(getStorageKey());
-                if (!raw) return null;
-                return JSON.parse(raw);
-            } catch (e) {
-                return null;
-            }
+            const model = availableModels.find(m => m.id === activeModelId);
+            if (model?.viewState) return model.viewState;
+            // Preserve alignment/crop saved by the previous browser-only implementation.
+            try { return JSON.parse(localStorage.getItem(getStorageKey()) || 'null'); }
+            catch { return null; }
+        }
+
+        function restoreCameraOrFit() {
+            const saved = loadSavedModelState();
+            if (!saved?.camera) { fitCameraToModel(); return; }
+            const view = saved.camera;
+            const damping = orbitControls.enableDamping;
+            orbitControls.enableDamping = false;
+            orbitControls.update(); // Drain movement remaining from the previous model.
+            camera.position.fromArray(view.position);
+            camera.fov = view.fov; camera.near = view.near; camera.far = view.far; camera.zoom = view.zoom;
+            orbitControls.target.fromArray(view.target);
+            orbitControls.update();
+            camera.quaternion.fromArray(view.quaternion);
+            orbitControls.enableDamping = damping;
+            camera.updateProjectionMatrix();
+            camera.updateMatrixWorld(true);
         }
 
         function clearSavedModelState() {
             localStorage.removeItem(getStorageKey());
-            showToast(`Cleared saved alignment for ${activeModelId}`);
+            showToast('Alignment reset in this view. Press Save Position & Lock to replace the saved default.');
             modelGroup.position.set(0, 0, 0);
             modelGroup.rotation.set(0, 0, 0);
             modelGroup.scale.set(1, 1, 1);
@@ -1485,7 +1518,7 @@
             document.addEventListener('visibilitychange', () => { clearMovement(); draggingLook = false; });
             const selectedModel = availableModels.find(model => model.id === activeModelId);
             updateAssetAvailability();
-            loadAsset(selectedModel?.defaultAsset || 'gaussian');
+            loadAsset(loadSavedModelState()?.assetType || selectedModel?.defaultAsset || 'gaussian');
             animate();
         }
 
@@ -1516,6 +1549,17 @@
                     document.getElementById('slider-metalness').value = saved.material.metalness;
                     document.getElementById('wireframe-toggle').checked = saved.material.wireframe;
                 }
+                if (saved.display) {
+                    gridHelper.visible = saved.display.grid;
+                    document.getElementById('grid-toggle').checked = saved.display.grid;
+                    document.getElementById('hud-cam-speed').value = saved.display.speed;
+                    document.getElementById('hud-cam-speed').dispatchEvent(new Event('input'));
+                    if (saved.display.light !== undefined) {
+                        document.getElementById('slider-light').value = saved.display.light;
+                        document.getElementById('slider-light').dispatchEvent(new Event('input'));
+                    }
+                }
+                document.getElementById('saved-badge-text').innerText = saved.camera ? 'LOCKED // SAVED' : 'LEGACY ALIGNMENT';
                 syncUIFromModelTransforms();
                 syncCropLabels();
                 showToast(`Restored view for ${activeModelId}`);
@@ -1616,7 +1660,7 @@
                         : '—';
 
                     applySavedStateOrDefaults();
-                    fitCameraToModel();
+                    restoreCameraOrFit();
                     updateClippingPlanes();
                     hideLoader();
                     return;
@@ -1651,7 +1695,7 @@
 
                 modelGroup.add(currentMesh);
                 applySavedStateOrDefaults();
-                fitCameraToModel();
+                restoreCameraOrFit();
                 updateClippingPlanes();
                 updateStatsHUD(geometry, isPoints);
                 hideLoader();
@@ -1891,7 +1935,7 @@
                 activeModelId = e.target.value;
                 updateAssetAvailability();
                 const model = availableModels.find(item => item.id === activeModelId);
-                loadAsset(model?.defaultAsset || 'stl');
+                loadAsset(loadSavedModelState()?.assetType || model?.defaultAsset || 'stl');
             });
 
             document.querySelectorAll('.tab-btn').forEach(btn => {

@@ -41,6 +41,27 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(error.exception.code,403);error.exception.close()
         with self.assertRaises(HTTPError) as error:self.request('/api/status',headers={'Host':'evil.example'})
         self.assertEqual(error.exception.code,403);error.exception.close()
+    def view_state(self):
+        return {'modelId':'one','version':1,'position':dict(x=0,y=.55,z=0),
+                'rotation':dict(x=-1.55,y=.01,z=0),'scale':1,'assetType':'pointcloud',
+                'camera':dict(position=[1,2,3],quaternion=[0,0,0,1],target=[0,0,0],fov=60,near=.01,far=1000,zoom=1),
+                'crop':dict(xMin='48',xMax='52',yMin='48',yMax='52',zMin='47',zMax='52',enabled=True,showHelper=True)}
+
+    def test_locked_view_persists_with_model_and_survives_rename(self):
+        state=self.view_state()
+        self.request('/api/view-state',{'id':'one','state':state})
+        self.request('/api/rename',{'id':'one','name':'Renamed'})
+        stored=json.loads((self.app/'models.json').read_text())['models'][0]
+        self.assertEqual(stored['viewState'],state)
+        self.assertEqual(stored['name'],'Renamed')
+
+    def test_invalid_view_does_not_replace_saved_configuration(self):
+        state=self.view_state();admin.save_view('one',state)
+        before=(self.app/'models.json').read_bytes()
+        state['camera']['position'][0]=float('nan')
+        with self.assertRaises(ValueError):admin.save_view('one',state)
+        self.assertEqual(before,(self.app/'models.json').read_bytes())
+
     def test_missing_asset_not_ready(self):
         self.assertFalse(admin.models()['models'][0]['ready'])
     def test_cancel_queued_is_durable(self):

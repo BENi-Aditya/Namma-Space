@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Local viewer server. Never terminates a process to claim its port."""
 import argparse
-from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import ThreadingHTTPServer
+from admin_server import Handler as StudioHandler
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +14,12 @@ def main():
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error('port must be between 1 and 65535')
-    handler = partial(SimpleHTTPRequestHandler, directory=str(ROOT / 'apps/viewer'))
+    class ViewerHandler(StudioHandler):
+        def do_POST(self):
+            if self.path not in ['/api/view-state', '/api/rename']:
+                return self.answer({'error':'Start ./start-admin.sh to manage training.'}, 403)
+            super().do_POST()
+    handler = ViewerHandler
     try:
         server = ThreadingHTTPServer(('127.0.0.1', args.port), handler)
     except OSError as error:

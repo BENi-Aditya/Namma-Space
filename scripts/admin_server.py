@@ -13,6 +13,7 @@ LOCK = threading.RLock()
 STOP = threading.Event()
 PROCESS = None
 JOBS = []
+HISTORY = []
 PRESETS = {'preview': 1000, 'balanced': 7000, 'quality': 15000}
 ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 
@@ -125,6 +126,39 @@ def _rename(model_id, name):
     model['name'] = name.strip()
     temp = path.with_suffix('.admin.tmp');temp.write_text(json.dumps(data,indent=2)+'\n');temp.replace(path)
 
+def save_view(model_id, state):
+    if not isinstance(state, dict) or state.get('modelId') != model_id:
+        raise ValueError('View must belong to this model')
+    import math
+    def finite(value):
+        return isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(value)
+    for field in ['position', 'rotation']:
+        if not isinstance(state.get(field), dict) or not all(finite(state[field].get(k)) for k in 'xyz'):
+            raise ValueError('Invalid model transform')
+    if not finite(state.get('scale')) or state['scale'] <= 0: raise ValueError('Invalid scale')
+    camera = state.get('camera', {})
+    for field, size in [('position',3), ('quaternion',4), ('target',3)]:
+        values = camera.get(field)
+        if not isinstance(values,list) or len(values)!=size or not all(finite(v) for v in values):
+            raise ValueError('Invalid camera')
+    for field in ['fov','near','far','zoom']:
+        if not finite(camera.get(field)) or camera[field]<=0: raise ValueError('Invalid camera projection')
+    if camera['near']>=camera['far'] or camera['fov']>=180: raise ValueError('Invalid camera range')
+    crop = state.get('crop', {})
+    for field in ['xMin','xMax','yMin','yMax','zMin','zMax']:
+        try: value = float(crop[field])
+        except (KeyError,TypeError,ValueError): raise ValueError('Invalid crop')
+        if not math.isfinite(value) or not 0<=value<=100: raise ValueError('Invalid crop')
+    if state.get('assetType') not in ['gaussian','pointcloud','stl','ply']: raise ValueError('Invalid asset')
+    with (APP/'models.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        path = APP/'models.json'
+        data = json.loads(path.read_text())
+        model = next((m for m in data['models'] if m['id']==model_id),None)
+        if model is None: raise ValueError('Unknown model')
+        model['viewState'] = state
+        temp = path.with_suffix('.view.tmp');temp.write_text(json.dumps(data,indent=2)+'\n');temp.replace(path)
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self,*args,**kwargs): super().__init__(*args,directory=str(APP),**kwargs)
     def log_message(self,*args): pass
@@ -187,11 +221,12 @@ class Handler(SimpleHTTPRequestHandler):
                 job={'id':ident,'model_id':'capture-'+ident[:12],'name':name,'video':str(path),'state':'queued','stage':'queued','iterations':PRESETS[preset],'preset':preset,'created':time.time()}
                 with LOCK: JOBS.insert(0,job);save(job)
                 return self.answer(job,201)
-            if length>4096: raise ValueError('Request too large')
+            if length>16384: raise ValueError('Request too large')
             body=json.loads(self.rfile.read(length))
             if not isinstance(body,dict): raise ValueError('Expected a JSON object')
             with LOCK:
-                if url.path=='/api/rename': rename(body['id'],body['name'])
+                if url.path=='/api/view-state': save_view(body['id'],body['state'])
+                elif url.path=='/api/rename': rename(body['id'],body['name'])
                 elif url.path=='/api/cancel':
                     job=next(j for j in JOBS if j['id']==body['id'])
                     if job['state'] not in ['queued','processing']: raise ValueError('This run is already stopped')
