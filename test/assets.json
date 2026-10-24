@@ -1,0 +1,20 @@
+[
+  {
+    "path": "test/data/your-video.mov",
+    "bytes": 14331095,
+    "sha256": "f3397deefd02eab8d255a14fa253334fb8cf6027f407460ff17227cd04680eee"
+  },
+  {
+    "path": "apps/viewer/models/IMG_2008/splat.ply",
+    "bytes": 161370667,
+    "sha256": "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12"
+  },
+  {
+    "path": "test/data/tabletop-sample.mp4",
+    "bytes": 598152,
+    "sha256": "e8458641721cdc40f43fe1c11ca48929d33c87d83fbfd85ac9049ab4f9808c21",
+    "source": "your-video.mov, seconds 4 through 12",
+    "transformation": "video-only H.264, 640x360, metadata removed; 8 seconds",
+    "purpose": "diagnostic object capture, not verified final indoor-room source"
+  }
+]

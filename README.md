@@ -1,152 +1,74 @@
-# 🏛️ Namma Space — 3D Indoor Navigation System
+# Namma Space
 
-> **IIT Bombay Techfest 2026-27 Entry**  
-> An end-to-end spatial computing pipeline transforming smartphone video captures into photorealistic, interactive 3D web environments with real-time indoor navigation — *Google Maps for Indoors*.
+Smartphone captures to indoor 3D reconstruction and browser exploration, for IIT Bombay Techfest 2026-27. Team ID: **TM-C2093A5006E** (provided by team owner; portal registration not independently checked).
 
----
+**Current state: local prototype, not submission-ready.** Existing splats and mesh/point-cloud outputs load locally. A bounded NeRF training test passed on this Mac's MPS GPU. A fresh complete capture-to-export run, convincing indoor reconstruction quality, public deployment, final video and portal submission remain outstanding. No measured FPS, metric scale, collision detection, POI search or AR capability is claimed.
 
-## 🎯 Competition Objectives & Milestones
+## Run the existing demo
 
-- **Round 1 (Due Oct 31, 2026):** High-fidelity 3D reconstruction + interactive Three.js web viewer with free roaming (WASD + mouse).
-- **Round 2 (Due Nov 30, 2026):** Point of Interest (POI) spatial search, navigation mesh generation, and pathfinding.
-- **Round 3 (Dec 16–17, 2026):** On-site capture, live demo & presentation at IIT Bombay.
+Requires Python 3.10+ and a desktop WebGL2 browser. No npm install is needed for the supported static viewer.
 
----
-
-## 🏗️ Repository Architecture
-
-```
-3D/
-├── 📚 docs/                       # Comprehensive guides, technical specs & SOPs
-│   ├── README.md                  # Documentation index
-│   ├── quickstart.md              # 5-minute setup and walkthrough
-│   ├── capture_sop.md             # iPhone 15 Pro video capture SOP
-│   ├── how_it_works.md            # Gaussian Splatting & COLMAP architecture
-│   ├── training_options.md        # Training presets & Apple Silicon flags
-│   ├── troubleshooting.md         # Troubleshooting & error resolution
-│   ├── competition_guide.md       # Competition roadmap & submission checklist
-│   ├── competition_guide.html     # Interactive HTML competition guide
-│   ├── competition_problem_statement.pdf # Official Techfest problem statement
-│   └── project_context.md         # Full project history & development logs
-│
-├── ⚙️ scripts/                    # Automation and pipeline scripts
-│   ├── README.md                  # Scripts reference guide
-│   ├── setup/                     # Environment configuration & prerequisite installers
-│   │   ├── setup.sh               # Standard automated environment setup
-│   │   ├── setup-fixed.sh         # Apple Silicon (M-series / M5 Max) optimized setup
-│   │   ├── clean-install.sh       # Clean conda reinstall script
-│   │   └── preflight-check.sh     # System diagnostics & hardware checks
-│   ├── pipeline/                  # End-to-end processing & export tools
-│   │   ├── process_video.sh       # Video → COLMAP → Training → Export pipeline
-│   │   ├── extract-frames.sh      # FFmpeg frame extraction utility
-│   │   ├── export_pipeline.py     # Multi-format exporter (.splat, .ply, .obj, .stl)
-│   │   ├── export-model.sh        # Gaussian Splat exporter helper
-│   │   ├── run.sh / run-simple.sh # Interactive pipeline launchers
-│   │   ├── view-3d-model.sh       # Model viewer launcher
-│   │   ├── view-mesh.sh           # Mesh visualizer launcher
-│   │   └── start-tensorboard.sh   # Live training metrics dashboard
-│   ├── training/                  # Dedicated training runners
-│   │   ├── train_gpu_viewer_working.py # GPU trainer with real-time interactive viewer
-│   │   ├── train_ultimate_gpu_fast.py  # High-throughput optimized trainer
-│   │   ├── train-competition.sh   # Full-resolution competition runner
-│   │   ├── train-1-competition.sh # Dedicated room 1 competition preset
-│   │   ├── start-training-cli.sh  # Optimized CLI runner
-│   │   ├── resume-training.sh     # Checkpoint training resume
-│   │   └── archive/               # Historical / experimental training presets
-│   └── tests/                     # Validation & diagnostic test scripts
-│
-├── 🌐 web-viewer/                 # React 18 + Three.js 3D Web Viewer Application
-│   ├── src/components/
-│   │   ├── Scene.jsx              # Main 3D scene & canvas
-│   │   ├── Controls.jsx           # First-person WASD + pointer lock navigation
-│   │   ├── GaussianSplat.jsx      # Gaussian splat renderer
-│   │   └── Instructions.jsx       # Interactive UI overlay
-│   └── public/models/             # Web-ready .splat 3D models
-│
-├── 📁 data/                       # Input videos and intermediate work artifacts
-│   ├── raw-videos/                # Raw iPhone 15 Pro video files (.mp4, .mov)
-│   └── processed/                 # COLMAP databases and sparse point clouds
-│
-├── 📦 exports/                    # Production 3D models, point clouds & navmeshes
-│
-└── 📊 logs/                       # Training execution logs (e.g. training.log)
-```
-
----
-
-## ⚡ Quick Start
-
-### 1. Environment Setup
 ```bash
-# Set up conda environment and dependencies (Apple Silicon M5 Max optimized)
-./scripts/setup/setup-fixed.sh
+./start-viewer.sh
+# Open http://127.0.0.1:8080/
+# If occupied, choose another port:
+./start-viewer.sh --port 8081
+```
 
-# Activate conda environment
+Select a model, drag to orbit, use WASD to move, Space/E up and Q/C down. **Enter walkthrough** requests first-person mouse look; Escape releases it. Some embedded browsers block pointer lock: use an ordinary desktop browser, or the drag/WASD fallback. **Reset view** recovers the overview. **Editor** exposes the preserved alignment, crop and asset controls. Alignment is stored in this browser only; it is not a portable calibrated scene setup. Geometry is in uncalibrated model units. No obstacle avoidance is implemented.
+
+Models are local generated artifacts, not normal Git source. The default IMG_2008 export is 161,370,667 bytes and contains 650,682 Gaussian vertices. The manifest lists four local scenes. A fresh clone needs the original artifacts restored under `namma-space-project/output-models/models/`; do not expect a Gaussian asset to arrive through Git. See [reproduction](docs/REPRODUCTION.md) and [asset provenance](test/README.md).
+
+## Reconstruct
+
+The supported entry point is dry-run by default and refuses existing run IDs:
+
+```bash
 conda activate namma-space
-
-# Verify setup
-./scripts/setup/preflight-check.sh
+python scripts/pipeline/reconstruct.py test/data/tabletop-sample.mp4 room-new --method nerfacto --device mps --iterations 7000
+# Review commands, available memory and intended compute budget; then add --execute.
 ```
 
-### 2. Capture Video
-Follow the [Capture SOP](docs/capture_sop.md):
-- Record 4K 30fps video using iPhone 15 Pro
-- Walk steadily (1–2 sec/meter) with 70–80% frame overlap
-- Place the recording in `data/raw-videos/your_room.mp4`
+This Mac supports MPS NeRF training. The installed Splatfacto/gsplat implementation uses CUDA kernels, so Gaussian training through that stack needs CUDA; passing mps does not convert it to Metal. The Mac route exports a colored point cloud from NeRF, which is a useful fallback but is not equivalent to a photorealistic NeRF renderer or a Gaussian export. Existing Gaussian exports can be viewed on the Mac without training. See [exact setup and limitations](docs/REPRODUCTION.md).
 
-### 3. Process Video & Train Model
+## Project map
+
+```text
+apps/viewer/             supported static app, manifest, vendored rendering libraries
+scripts/pipeline/        supported reconstruct.py + process_video.sh wrapper; legacy exporters
+scripts/serve_viewer.py  localhost preview; never kills another process
+scripts/package_viewer.py standalone static deployment bundle
+scripts/setup/          historical installers (review before running)
+scripts/training/       historical presets; many delete outputs, not supported entry points
+experiments/            preserved React/capture/spatial-engine experiments
+namma-space-project/    original videos, .work datasets/checkpoints, output-models artifacts
+exports/                relative alias to output-models (no duplicate heavy data)
+data/                   relative aliases to original videos and processed data
+models/                 compatibility alias to local generated model directory
+web-viewer/             compatibility alias to apps/viewer
+logs/                   local training logs
+ test/                  regression tests, source sample, provenance and asset hashes
+ docs/                  current capture SOP and reproduction guide
+ docs/history/          dated prior plans and architecture, preserved with warnings
+ docs/audit/2026-10-24/  evidence, requirements, mapping, execution plan and test results
+ submission/round1/     abstract, organized master links document and demo storyboard
+```
+
+## Verify and package
+
 ```bash
-# Run automated pipeline (COLMAP + Splatfacto + Export)
-./scripts/pipeline/process_video.sh data/raw-videos/your_room.mp4 your_room
-
-# Or run with the real-time interactive viewer
-python scripts/training/train_gpu_viewer_working.py
+python3 -m unittest discover -s test -v
+python3 scripts/check_project.py
+python3 scripts/package_viewer.py
+# Deploy output/site to a static HTTPS host; no symlinks remain in that bundle.
 ```
 
-### 4. Launch Web Navigation Viewer
-```bash
-# Copy exported splat model to web viewer
-cp exports/models/your_room/*.splat web-viewer/public/models/demo.splat
+The packaged viewer includes large generated assets and is ignored by Git. Hosting is not configured. Do not publish private captures or claim source ownership until provenance is confirmed. Rendering dependency licences are included in [third-party notices](apps/viewer/THIRD_PARTY_NOTICES.md); no project-wide MIT licence is asserted.
 
-# Start the Vite development server
-cd web-viewer
-npm install
-npm run dev
+## Round 1 delivery
 
-# Open http://localhost:5173 in browser
-```
+The [official brief](docs/competition_problem_statement.pdf), pages 3 and 5-6, specifies **31 October 2026**, with no published cutoff time/timezone in that document. Submit via the Techfest portal a Google Drive folder accessible to anyone with the link: technical abstract PDF (max 5 pages), organized viewer-link document, 3-5 minute demo video, code/setup instructions and sample data inside a test directory. POIs and desktop pathfinding are Round 2; AR is bonus. Prior plans incorrectly mixed these scopes.
 
----
+Start with the [audit](docs/audit/2026-10-24/AUDIT.md), [requirement checklist](docs/audit/2026-10-24/REQUIREMENTS.md), [execution plan](docs/audit/2026-10-24/PLAN.md), and [verification record](docs/audit/2026-10-24/VERIFICATION.md). The PDFs in submission/round1 are review drafts until missing links, provenance and quality checks are resolved.
 
-## 🛠️ Technology Stack
-
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Capture** | iPhone 15 Pro (4K 30fps + LiDAR) | Spatial video capture |
-| **Camera Poses** | COLMAP 4.1.1 | Feature extraction & sparse SfM reconstruction |
-| **Frame Extraction** | FFmpeg 9.0.1 | High-quality frame extraction at keyframe intervals |
-| **3D Reconstruction** | Nerfstudio + Splatfacto | 3D Gaussian Splatting with MPS/CUDA acceleration |
-| **Web Rendering** | React 18 + Three.js + Vite | Real-time interactive browser experience (60fps) |
-| **Splat Loader** | `@mkkellogg/gaussian-splats-3d` | Efficient point cloud & splat rendering |
-| **Pathfinding (R2)** | Yuka.js + Recast Navigation | Navmesh generation & shortest-path calculation |
-| **Spatial Index (R2)**| RBush + Fuse.js | Real-time Point of Interest (POI) search |
-
----
-
-## 📖 Key Documentation
-
-- 🚀 [**Quickstart Guide**](docs/quickstart.md) — Step-by-step 5-minute setup
-- 📱 [**Capture SOP**](docs/capture_sop.md) — iPhone camera recording standard operating procedure
-- ⚙️ [**How It Works**](docs/how_it_works.md) — Technical pipeline architecture & mathematical foundations
-- 🎛️ [**Training Options**](docs/training_options.md) — Hyperparameter tuning & performance presets
-- 🔧 [**Troubleshooting Guide**](docs/troubleshooting.md) — Fixes for COLMAP mismatches, OOM errors, and web glitches
-- 🏆 [**Competition Strategy**](docs/competition_guide.md) — IIT Bombay Techfest roadmap and submission criteria
-- 📜 [**Problem Statement (PDF)**](docs/competition_problem_statement.pdf) — Official challenge specifications
-
----
-
-## 👥 Team & License
-
-- **Developer:** Solo developer for IIT Bombay Techfest 2026-27
-- **Hardware:** MacBook Pro M5 Max (36GB Unified Memory) + iPhone 15 Pro
-- **License:** MIT License
+A small video-only diagnostic excerpt is included in Git at test/data/tabletop-sample.mp4. It is a tabletop object capture; obtain a proper indoor-room sample for the final reconstruction evidence. The full original remains local.

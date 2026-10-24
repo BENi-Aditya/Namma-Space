@@ -1,3 +1,5 @@
+> Historical document, archived 24 October 2026. Claims and commands may be outdated. See [current audit](../audit/2026-10-24/AUDIT.md) and [current setup](../REPRODUCTION.md).
+
 1. If I were judging you at IIT Bombay
 
 I'd look at your project and ask five questions:

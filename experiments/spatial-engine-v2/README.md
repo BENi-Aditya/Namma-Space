@@ -1,6 +1,6 @@
 # Spatial Engine V2 — Experiment Directory
 
-This directory contains experiments and implementations for the layered spatial intelligence architecture described in [`ARCHITECTURE.md`](../../ARCHITECTURE.md).
+This directory contains experiments and implementations for the layered spatial intelligence architecture described in [`ARCHITECTURE.md`](../../docs/history/ARCHITECTURE.md).
 
 ---
 
@@ -61,4 +61,4 @@ This directory supports work in:
 
 ---
 
-See [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for full system design.
+See [`ARCHITECTURE.md`](../../docs/history/ARCHITECTURE.md) for full system design.

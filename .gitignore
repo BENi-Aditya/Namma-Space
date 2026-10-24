@@ -100,3 +100,24 @@ dist/
 # Temporary caches
 tmp/
 torch_cache/
+
+# Local backups, credentials and generated reconstruction artifacts
+.local-backups/
+.env
+.env.*
+!.env.example
+*.pem
+outputs/
+output/site/
+namma-space-project/.temp-processing/
+namma-space-project/output-models/models/
+logs/
+submission/round1/*.mp4
+test/data/*.mov
+test/data/*.mp4
+
+# Small audio-free, metadata-stripped diagnostic capture
+!test/data/tabletop-sample.mp4
+
+# All locally generated release/deployment bundles
+output/

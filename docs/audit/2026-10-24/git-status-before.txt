@@ -1,0 +1,15 @@
+ M README.md
+ D namma-space-project/output-models/mesh/model.obj
+ D namma-space-project/output-models/mesh/model.stl
+ M namma-space-project/output-models/models.json
+ M namma-space-project/output-models/viewer.html
+ M start-viewer.sh
+ M train-video-2.sh
+?? MODELS.md
+?? docs/audit/
+?? models
+?? namma-space-project/output-models/index.html
+?? namma-space-project/output-models/models/2-run/
+?? namma-space-project/output-models/models/IMG_2008/
+?? package-lock.json
+?? web-viewer

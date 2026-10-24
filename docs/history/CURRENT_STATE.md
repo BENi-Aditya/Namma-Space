@@ -1,3 +1,5 @@
+> Historical document, archived 24 October 2026. Claims and commands may be outdated. See [current audit](../audit/2026-10-24/AUDIT.md) and [current setup](../REPRODUCTION.md).
+
 # Current State Assessment — Phase 0 Audit
 **Date:** 2026-09-29  
 **Project:** Namma Space — 3D Indoor Navigation System  
@@ -43,10 +45,10 @@ Capture → Reconstruction → Visual+Spatial → Search+Navigation → Web/AR
 - 🟡 No automated quality validation or acceptance criteria
 
 **Key Files:**
-- [`scripts/pipeline/process_video.sh`](scripts/pipeline/process_video.sh) — Main automation (COLMAP + Splatfacto)
-- [`scripts/training/train_gpu_viewer_working.py`](scripts/training/train_gpu_viewer_working.py) — GPU training with live viewer
-- [`scripts/training/train_ultimate_gpu_fast.py`](scripts/training/train_ultimate_gpu_fast.py) — Fast training variant
-- [`scripts/pipeline/export_pipeline.py`](scripts/pipeline/export_pipeline.py) — Multi-format exporter
+- [`scripts/pipeline/process_video.sh`](../../scripts/pipeline/process_video.sh) — Main automation (COLMAP + Splatfacto)
+- [`scripts/training/train_gpu_viewer_working.py`](../../scripts/training/train_gpu_viewer_working.py) — GPU training with live viewer
+- [`scripts/training/train_ultimate_gpu_fast.py`](../../scripts/training/train_ultimate_gpu_fast.py) — Fast training variant
+- [`scripts/pipeline/export_pipeline.py`](../../scripts/pipeline/export_pipeline.py) — Multi-format exporter
 
 **Evidence of Past Training Runs:**
 ```
@@ -81,11 +83,11 @@ namma-space-project/.work/
 - ✅ Dev-mode performance stats (FPS counter)
 
 **Architecture:**
-- [`web-viewer/src/App.jsx`](web-viewer/src/App.jsx) — Top-level app (18 lines, clean)
-- [`web-viewer/src/components/Scene.jsx`](web-viewer/src/components/Scene.jsx) — Canvas + lighting setup
-- [`web-viewer/src/components/GaussianSplat.jsx`](web-viewer/src/components/GaussianSplat.jsx) — Splat loader (hardcoded to `/models/demo.splat`)
-- [`web-viewer/src/components/Controls.jsx`](web-viewer/src/components/Controls.jsx) — WASD + Space/Shift vertical movement
-- [`web-viewer/src/components/Instructions.jsx`](web-viewer/src/components/Instructions.jsx) — UI overlay
+- [`web-viewer/src/App.jsx`](../../apps/viewer/src/App.jsx) — Top-level app (18 lines, clean)
+- [`web-viewer/src/components/Scene.jsx`](../../apps/viewer/src/components/Scene.jsx) — Canvas + lighting setup
+- [`web-viewer/src/components/GaussianSplat.jsx`](../../apps/viewer/src/components/GaussianSplat.jsx) — Splat loader (hardcoded to `/models/demo.splat`)
+- [`web-viewer/src/components/Controls.jsx`](../../apps/viewer/src/components/Controls.jsx) — WASD + Space/Shift vertical movement
+- [`web-viewer/src/components/Instructions.jsx`](../../apps/viewer/src/components/Instructions.jsx) — UI overlay
 
 **Key Configuration:**
 - Camera: `position: [0, 1.6, 5]`, `fov: 75`
@@ -164,15 +166,15 @@ namma-space-project/output-models/
 ### Status: 🟢 COMPREHENSIVE (but outdated)
 
 **Existing Documentation:**
-1. ✅ [`README.md`](README.md) — Project overview, tech stack, quick start
-2. ✅ [`docs/quickstart.md`](docs/quickstart.md) — 5-minute setup guide
-3. ✅ [`docs/capture_sop.md`](docs/capture_sop.md) — iPhone capture protocol ("Spiral Scan" method)
-4. ✅ [`docs/how_it_works.md`](docs/how_it_works.md) — COLMAP + Gaussian Splatting architecture
-5. ✅ [`docs/training_options.md`](docs/training_options.md) — Hyperparameter reference
-6. ✅ [`docs/troubleshooting.md`](docs/troubleshooting.md) — Error resolution guide
-7. ✅ [`docs/competition_guide.md`](docs/competition_guide.md) — Competition roadmap
-8. ✅ [`docs/project_context.md`](docs/project_context.md) — Development history
-9. ✅ [`docs/competition_problem_statement.pdf`](docs/competition_problem_statement.pdf) — Official rules
+1. ✅ [`README.md`](../../README.md) — Project overview, tech stack, quick start
+2. ✅ [`docs/quickstart.md`](../quickstart.md) — 5-minute setup guide
+3. ✅ [`docs/capture_sop.md`](../capture_sop.md) — iPhone capture protocol ("Spiral Scan" method)
+4. ✅ [`docs/how_it_works.md`](../how_it_works.md) — COLMAP + Gaussian Splatting architecture
+5. ✅ [`docs/training_options.md`](../training_options.md) — Hyperparameter reference
+6. ✅ [`docs/troubleshooting.md`](../troubleshooting.md) — Error resolution guide
+7. ✅ [`docs/competition_guide.md`](../competition_guide.md) — Competition roadmap
+8. ✅ [`docs/project_context.md`](../project_context.md) — Development history
+9. ✅ [`docs/competition_problem_statement.pdf`](../competition_problem_statement.pdf) — Official rules
 
 **Capture SOP Details:**
 - "Spiral Scan" method: eye level → low level → high level passes
@@ -201,10 +203,10 @@ namma-space-project/output-models/
 - PyTorch: MPS backend enabled
 
 **Setup Scripts:**
-- [`scripts/setup/setup.sh`](scripts/setup/setup.sh) — Standard setup
-- [`scripts/setup/setup-fixed.sh`](scripts/setup/setup-fixed.sh) — M5 Max optimized
-- [`scripts/setup/preflight-check.sh`](scripts/setup/preflight-check.sh) — Hardware diagnostics
-- [`scripts/setup/clean-install.sh`](scripts/setup/clean-install.sh) — Clean reinstall
+- [`scripts/setup/setup.sh`](../../scripts/setup/setup.sh) — Standard setup
+- [`scripts/setup/setup-fixed.sh`](../../scripts/setup/setup-fixed.sh) — M5 Max optimized
+- [`scripts/setup/preflight-check.sh`](../../scripts/setup/preflight-check.sh) — Hardware diagnostics
+- [`scripts/setup/clean-install.sh`](../../scripts/setup/clean-install.sh) — Clean reinstall
 
 **Hardware:**
 - MacBook Pro M5 Max (36GB unified memory)

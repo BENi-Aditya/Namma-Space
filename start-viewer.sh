@@ -1,14 +1,5 @@
-#!/bin/bash
-# Namma Space - 3D CAD Studio Web Viewer Launcher
-cd "$(dirname "$0")/namma-space-project/output-models"
-
-PORT=8080
-URL="http://localhost:$PORT/viewer.html"
-
-echo "=================================================="
-echo "🌟 Launching Namma Space - 3D CAD Studio (Dark Theme)"
-echo "🌐 URL: $URL"
-echo "=================================================="
-
-(sleep 1 && open "$URL") &
-python3 -m http.server $PORT
+#!/usr/bin/env bash
+# Serve only the viewer, never private reconstruction files.
+set -euo pipefail
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "${PYTHON:-python3}" "$PROJECT_DIR/scripts/serve_viewer.py" "$@"

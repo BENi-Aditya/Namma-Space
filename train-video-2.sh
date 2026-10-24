@@ -10,9 +10,12 @@ echo "Target: High quality + Fast Training"
 echo "=================================================="
 echo ""
 
-CONDA_BASE=$(conda info --base 2>/dev/null || echo "/Users/tripathd/miniforge3")
-source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate namma-space
+CONDA_BASE="${CONDA_PREFIX:-/Users/tripathd/miniforge3}"
+if [ -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+    source "$CONDA_BASE/etc/profile.d/conda.sh"
+    conda activate namma-space
+fi
+export PATH="/Users/tripathd/miniforge3/envs/namma-space/bin:$PATH"
 
 export QT_QPA_PLATFORM=offscreen
 export KMP_DUPLICATE_LIB_OK=TRUE
@@ -22,7 +25,6 @@ export OMP_NUM_THREADS=8
 DATA_DIR="namma-space-project/.work/2-run"
 OUTPUT_DIR="namma-space-project/.work/training-2"
 EXPORT_BASE="namma-space-project/output-models/models/2-run"
-VIDEO_PATH="/Users/tripathd/Downloads/Manual Library/Projects/3D/namma-space-project/input-videos/2.MOV"
 
 mkdir -p "$DATA_DIR/colmap"
 mkdir -p "$OUTPUT_DIR"
@@ -30,26 +32,50 @@ mkdir -p "$EXPORT_BASE/mesh"
 mkdir -p "$EXPORT_BASE/pointcloud"
 
 # Step 1: COLMAP Structure from Motion & Feature Matching
-echo "📸 [1/3] Running COLMAP Feature Extraction & Matching..."
-ns-process-data video \
-    --data "$VIDEO_PATH" \
-    --output-dir "$DATA_DIR" \
-    --num-frames-target 300 \
-    --matching-method sequential \
-    --camera-type perspective \
-    --skip-image-processing \
-    --no-gpu \
-    --num-downscales 2
+if [ ! -f "$DATA_DIR/transforms.json" ]; then
+    echo "📸 [1/3] Running COLMAP Feature Extraction & Matching..."
+    ns-process-data images \
+        --data "$DATA_DIR/images" \
+        --output-dir "$DATA_DIR" \
+        --matching-method sequential \
+        --camera-type perspective \
+        --skip-image-processing \
+        --no-gpu
+else
+    echo "✅ [1/3] transforms.json already exists in $DATA_DIR"
+fi
 
 echo ""
-echo "🔥 [2/3] Starting Apple Silicon Metal GPU NeRF Training (10,000 steps)..."
-ns-train nerfacto \
-    --data "$DATA_DIR" \
-    --output-dir "$OUTPUT_DIR" \
-    --max-num-iterations 10000 \
-    --viewer.quit-on-train-completion True \
-    --machine.device-type mps \
-    --machine.num-devices 1
+echo "🔥 [2/3] Resuming / Starting Apple Silicon Metal GPU NeRF Training (10,000 steps)..."
+CHECKPOINT=$(find "$OUTPUT_DIR" -name "*.ckpt" -type f | sort -r | head -n 1)
+EXISTING_CONFIG=$(find "$OUTPUT_DIR" -name "config.yml" -type f | sort -r | head -n 1)
+
+if [ -n "$CHECKPOINT" ] && [ -n "$EXISTING_CONFIG" ]; then
+    echo "🔄 Found previous checkpoint: $CHECKPOINT"
+    echo "Resuming training from checkpoint..."
+    python3 - << PYEOF
+import yaml
+from pathlib import Path
+with open("$EXISTING_CONFIG", "r") as f:
+    cfg = yaml.load(f.read(), Loader=yaml.Loader)
+cfg.load_dir = Path("$CHECKPOINT").parent
+with open("$EXISTING_CONFIG", "w") as f:
+    yaml.dump(cfg, f)
+print("Config updated to load from:", cfg.load_dir)
+PYEOF
+    ns-train nerfacto \
+        --load-config "$EXISTING_CONFIG" \
+        --machine.device-type mps \
+        --machine.num-devices 1
+else
+    ns-train nerfacto \
+        --data "$DATA_DIR" \
+        --output-dir "$OUTPUT_DIR" \
+        --max-num-iterations 10000 \
+        --viewer.quit-on-train-completion True \
+        --machine.device-type mps \
+        --machine.num-devices 1
+fi
 
 echo ""
 echo "📦 [3/3] Training finished. Exporting 3D Models & Point Clouds..."

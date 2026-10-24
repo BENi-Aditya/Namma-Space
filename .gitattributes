@@ -1,0 +1,9 @@
+*.pdf binary
+*.mp4 binary
+*.mov binary
+*.ply binary
+*.stl binary
+# Preserve vendored and historical source formatting without whitespace checks.
+apps/viewer/lib/** -whitespace
+experiments/legacy-react-viewer/** -whitespace
+docs/history/** -whitespace

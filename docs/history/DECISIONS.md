@@ -1,3 +1,5 @@
+> Historical document, archived 24 October 2026. Claims and commands may be outdated. See [current audit](../audit/2026-10-24/AUDIT.md) and [current setup](../REPRODUCTION.md).
+
 # Technical Decisions Log
 **Project:** Namma Space — 3D Indoor Navigation System  
 **Competition:** IIT Bombay Techfest 2026-27

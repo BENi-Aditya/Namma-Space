@@ -1,3 +1,5 @@
+> Historical document, archived 24 October 2026. Claims and commands may be outdated. See [current audit](../audit/2026-10-24/AUDIT.md) and [current setup](../REPRODUCTION.md).
+
 # Namma Space — Architecture Freeze
 **Version:** 1.0  
 **Date:** 2026-09-29  
