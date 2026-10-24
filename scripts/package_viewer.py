@@ -18,7 +18,7 @@ def package(destination):
         if not asset.startswith('models/') or '..' in Path(asset).parts or not (source / asset).is_file():
             raise ValueError(f'Missing or unsafe asset: {asset}')
     destination.mkdir(parents=True)
-    for name in ['index.html', 'models.json', 'THIRD_PARTY_NOTICES.md']:
+    for name in ['index.html', 'viewer.html', 'studio.css', 'gallery.js', 'models.json', 'THIRD_PARTY_NOTICES.md']:
         shutil.copy2(source / name, destination / name)
     shutil.copytree(source / 'lib', destination / 'lib', symlinks=False)
     for asset in assets:

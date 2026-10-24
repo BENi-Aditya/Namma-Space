@@ -4,6 +4,20 @@ Smartphone captures to indoor 3D reconstruction and browser exploration, for IIT
 
 **Current state: local prototype, not submission-ready.** Existing splats and mesh/point-cloud outputs load locally. A bounded NeRF training test passed on this Mac's MPS GPU. A fresh complete capture-to-export run, convincing indoor reconstruction quality, public deployment, final video and portal submission remain outstanding. No measured FPS, metric scale, collision detection, POI search or AR capability is claimed.
 
+## Training studio — one command
+
+```bash
+./start-admin.sh
+```
+
+Opens http://127.0.0.1:8080/admin automatically. This Mac's existing `namma-space` environment is detected without a separate activation command. Choose a name and training budget, then drop a video or select it and click **Upload & start training**. The studio runs frame extraction, COLMAP, pose validation, Mac NeRF training and point-cloud export. Jobs run one at a time. The page shows live logs, stages, measured training ETA, cancellation and persistent history. Keep the server running; closing its terminal stops active training.
+
+The checked **Open live training** option reserves a browser tab during upload and navigates it to Nerfstudio when ready. Allow popups for localhost, or use **Open live Nerfstudio**. That viewer closes when training finishes so export can start. Exported scenes appear in the **Model library**; **Rename** persists their display name in `apps/viewer/models.json`, keeping stable asset IDs and checkpoint paths intact.
+
+Preview / Balanced / Extended request 1,000 / 7,000 / 15,000 steps. These are compute budgets, not quality guarantees. Processing and export have no reliable ETA; the training estimate appears after measured steps. Failed/cancelled runs preserve input and partial outputs. Restarted incomplete runs are marked interrupted, never silently resumed. Previous checkpoint folders appear separately with honest checkpoint/export status.
+
+Use `./start-admin.sh --port 8081` if the port is occupied. `NAMMA_PYTHON=/absolute/path/to/python ./start-admin.sh` selects another installed training environment. Inputs, jobs and logs stay under ignored `namma-space-project/.work/admin/`. This is a loopback-only local tool; deploy only the packaged static viewer publicly. See [studio guide](docs/TRAINING_STUDIO.md).
+
 ## Run the existing demo
 
 Requires Python 3.10+ and a desktop WebGL2 browser. No npm install is needed for the supported static viewer.
@@ -17,7 +31,7 @@ Requires Python 3.10+ and a desktop WebGL2 browser. No npm install is needed for
 
 Select a model, drag to orbit, use WASD to move, Space/E up and Q/C down. **Enter walkthrough** requests first-person mouse look; Escape releases it. Some embedded browsers block pointer lock: use an ordinary desktop browser, or the drag/WASD fallback. **Reset view** recovers the overview. **Editor** exposes the preserved alignment, crop and asset controls. Alignment is stored in this browser only; it is not a portable calibrated scene setup. Geometry is in uncalibrated model units. No obstacle avoidance is implemented.
 
-Models are local generated artifacts, not normal Git source. The default IMG_2008 export is 161,370,667 bytes and contains 650,682 Gaussian vertices. The manifest lists four local scenes. A fresh clone automatically opens an older tracked mesh fallback and explains the missing preferred export. For the Gaussian demo, restore the original artifacts under `namma-space-project/output-models/models/`; do not expect a Gaussian asset to arrive through Git. See [reproduction](docs/REPRODUCTION.md) and [asset provenance](test/README.md).
+Models are local generated artifacts, not normal Git source. The default IMG_2008 export is 161,370,667 bytes and contains 650,682 Gaussian vertices. The manifest lists four local scenes. A fresh clone lists only the older tracked models whose assets are present. Direct viewer links also handle missing preferred exports. For the Gaussian demo, restore the original artifacts under `namma-space-project/output-models/models/`; do not expect a Gaussian asset to arrive through Git. See [reproduction](docs/REPRODUCTION.md) and [asset provenance](test/README.md).
 
 ## Reconstruct
 

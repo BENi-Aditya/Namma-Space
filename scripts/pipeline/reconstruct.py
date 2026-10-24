@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Supported video -> COLMAP -> Splatfacto -> viewer pipeline. Dry-run by default."""
 import argparse
+import fcntl
+import signal
+import threading
+import time
 import hashlib
 import json
 import math
@@ -36,6 +40,11 @@ def validate_poses(directory, min_frames=20):
 
 
 def register_model(viewer, room, ply, method="splatfacto"):
+    with (viewer / "models.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return _register_model(viewer, room, ply, method)
+
+def _register_model(viewer, room, ply, method="splatfacto"):
     with ply.open('rb') as stream:
         header = stream.read(16384).split(b'end_header', 1)[0]
     properties = {line.split()[-1]: line.split()[1] for line in header.splitlines() if line.startswith(b'property ') and len(line.split()) == 3}
@@ -60,7 +69,7 @@ def register_model(viewer, room, ply, method="splatfacto"):
     os.replace(temp, manifest)
 
 
-def run_pipeline(video, room, iterations, execute=False, method="splatfacto", device="cuda"):
+def run_pipeline(video, room, iterations, execute=False, method="splatfacto", device="cuda", viewer_port=None):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', room):
         raise ValueError('Room ID must contain only letters, digits, underscores or hyphens (max 64).')
     if method == 'splatfacto' and device != 'cuda':
@@ -74,16 +83,23 @@ def run_pipeline(video, room, iterations, execute=False, method="splatfacto", de
     manifest = json.loads((VIEWER / 'models.json').read_text())
     if any(p.exists() for p in [processed, training, export]) or any(m['id'] == room for m in manifest['models']):
         raise ValueError('Room already exists. Choose a new ID; existing data will never be deleted or overwritten.')
+    # Nerfstudio builds unquoted COLMAP shell commands internally. Relative
+    # workspace paths avoid breaking on this checkout's 'Manual Library' name.
+    def cli_path(path):
+        return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
     commands = [
-        ['ns-process-data', 'video', '--data', str(video), '--output-dir', str(processed),
+        ['ns-process-data', 'video', '--data', cli_path(video), '--output-dir', cli_path(processed),
          '--num-frames-target', '300', '--matching-method', 'sequential', '--no-gpu'],
-        ['ns-train', method, '--data', str(processed), '--output-dir', str(training),
+        ['ns-train', method, '--data', cli_path(processed), '--output-dir', cli_path(training),
          '--experiment-name', room, '--max-num-iterations', str(iterations),
-         '--machine.device-type', device, '--vis', 'tensorboard'],
+         '--machine.device-type', device, '--vis', 'tensorboard', '--logging.local-writer.max-log-size', '0'],
     ]
     if method == 'nerfacto':
         commands[1] += ['--mixed-precision', 'False', '--pipeline.model.implementation', 'torch',
                         '--pipeline.datamanager.train-num-rays-per-batch', '2048']
+    if viewer_port:
+        commands[1][commands[1].index('tensorboard')] = 'viewer+tensorboard'
+        commands[1] += ['--viewer.websocket-host', '127.0.0.1', '--viewer.websocket-port', str(viewer_port), '--viewer.quit-on-train-completion', 'True']
     export_kind = 'gaussian-splat' if method == 'splatfacto' else 'pointcloud'
     for command in commands:
         print(shlex.join(command), flush=True)
@@ -108,16 +124,19 @@ def run_pipeline(video, room, iterations, execute=False, method="splatfacto", de
               'commands': commands, 'state': 'processing'}
     record_file = processed / 'run.json'
     try:
+        print("NAMMA_STAGE processing", flush=True)
         subprocess.run(commands[0], check=True, cwd=ROOT)
         record['registered_frames'] = validate_poses(processed)
+        print("NAMMA_STAGE training", flush=True)
         subprocess.run(commands[1], check=True, cwd=ROOT)
         configs = list(training.rglob('config.yml'))
         if len(configs) != 1:
             raise ValueError(f'Expected exactly one config from this run; found {len(configs)}. Select manually; no export registered.')
-        command = ['ns-export', export_kind, '--load-config', str(configs[0]), '--output-dir', str(export)]
+        command = [sys.executable, str(ROOT / 'scripts/pipeline/export_model.py'), export_kind, '--load-config', str(configs[0]), '--output-dir', str(export)]
         if method == 'nerfacto':
-            command += ['--num-points', '150000', '--normal-method', 'open3d']
+            command += ['--num-points', '150000', '--num-rays-per-batch', '2048', '--normal-method', 'open3d']
         record['commands'].append(command)
+        print('NAMMA_STAGE exporting', flush=True)
         subprocess.run(command, check=True, cwd=ROOT)
         register_model(VIEWER, room, export / ('splat.ply' if method == 'splatfacto' else 'point_cloud.ply'), method)
         record['state'] = 'exported; browser quality review still required'
@@ -127,22 +146,33 @@ def run_pipeline(video, room, iterations, execute=False, method="splatfacto", de
         raise
     finally:
         record_file.write_text(json.dumps(record, indent=2) + '\n')
-    print(f'Export registered. Review http://127.0.0.1:8080/?model={room} before selecting it for submission.')
+    print(f'Export registered. Review http://127.0.0.1:8080/viewer.html?model={room} before selecting it for submission.')
 
 
 def main():
+    # Dashboard-owned jobs must not continue invisibly after the controller dies.
+    parent = os.environ.get('NAMMA_PARENT_PID')
+    if parent:
+        def watch_parent():
+            while True:
+                time.sleep(1)
+                if os.getppid() != int(parent):
+                    os.killpg(os.getpgrp(), signal.SIGTERM)
+                    return
+        threading.Thread(target=watch_parent, daemon=True).start()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('video', type=Path)
     parser.add_argument('room', help='New unique run/model ID')
     parser.add_argument('--iterations', type=int, default=7000, help='Engineering smoke preset, not a quality guarantee')
     parser.add_argument('--method', choices=['nerfacto', 'splatfacto'], default='nerfacto')
     parser.add_argument('--device', choices=['mps', 'cuda', 'cpu'], default='mps' if sys.platform == 'darwin' else 'cuda')
+    parser.add_argument('--viewer-port', type=int)
     parser.add_argument('--execute', action='store_true')
     args = parser.parse_args()
     if args.iterations < 1:
         parser.error('iterations must be positive')
     try:
-        run_pipeline(args.video, args.room, args.iterations, args.execute, args.method, args.device)
+        run_pipeline(args.video, args.room, args.iterations, args.execute, args.method, args.device, args.viewer_port)
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, f'Pipeline stopped: {error}\n')
 

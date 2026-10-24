@@ -128,3 +128,6 @@ output/
 
 # Small visual verification evidence
 !docs/audit/2026-10-24/viewer-fresh-checkout.png
+
+# Local manifest synchronization
+apps/viewer/models.lock

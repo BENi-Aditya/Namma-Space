@@ -45,6 +45,37 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual([m['id'] for m in data['models']], ['new', 'existing'])
             self.assertEqual(data['latest'], 'new')
 
+    def test_live_pipeline_orders_stages_and_registers_only_after_export(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); work = root / 'work'; work.mkdir()
+            viewer = root / 'viewer'; viewer.mkdir()
+            (viewer / 'models.json').write_text('{"models":[],"latest":null}')
+            video = root / 'input.mp4'; video.write_bytes(b'test fixture')
+            calls = []
+            def run(command, **kwargs):
+                calls.append(command)
+                if command[0] == 'ns-process-data':
+                    output = Path(command[command.index('--output-dir')+1])
+                    (output / 'frame.png').touch()
+                    matrix = [[int(i==j) for j in range(4)] for i in range(4)]
+                    (output / 'transforms.json').write_text(json.dumps({'frames':[{'file_path':'frame.png','transform_matrix':matrix}]*20}))
+                elif command[0] == 'ns-train':
+                    output = Path(command[command.index('--output-dir')+1]); output.mkdir()
+                    (output / 'config.yml').write_text('test fixture')
+                    self.assertIn('--viewer.quit-on-train-completion', command)
+                    self.assertIn('viewer+tensorboard', command)
+                elif 'pointcloud' in command:
+                    self.assertEqual(json.loads((viewer/'models.json').read_text())['models'], [])
+                    output = Path(command[command.index('--output-dir')+1]); output.mkdir(parents=True)
+                    (output/'point_cloud.ply').write_bytes(b'ply\nproperty float x\nproperty float y\nproperty float z\nend_header\n')
+                return subprocess.CompletedProcess(command,0)
+            with patch.object(pipeline,'WORK',work), patch.object(pipeline,'VIEWER',viewer), patch.object(pipeline.shutil,'which',return_value='/tool'), patch.object(pipeline.subprocess,'run',side_effect=run):
+                pipeline.run_pipeline(video,'fresh',100,True,'nerfacto','mps',7017)
+            self.assertEqual(len(calls),4)
+            self.assertEqual(json.loads((viewer/'models.json').read_text())['latest'],'fresh')
+            self.assertEqual(json.loads((work/'fresh/run.json').read_text())['registered_frames'],20)
+
     def test_existing_run_is_never_overwritten(self):
         with tempfile.TemporaryDirectory() as temp:
             work = Path(temp)

@@ -24,7 +24,7 @@ def main():
                 count += 1
                 if not asset.startswith('models/') or '..' in Path(asset).parts or not (app / asset).is_file():
                     errors.append(f'Missing or unsafe asset: {asset}')
-    html = (app / 'index.html').read_text()
+    html = (app / 'viewer.html').read_text()
     for filename in ['three.module.js', 'gaussian-splats-3d.module.js',
                      'three-addons/controls/OrbitControls.js', 'three-addons/controls/TransformControls.js',
                      'three-addons/loaders/PLYLoader.js', 'three-addons/loaders/STLLoader.js',
@@ -36,9 +36,12 @@ def main():
     parsed = subprocess.run(['node', '--input-type=module', '--check'], input=module, text=True, capture_output=True)
     if parsed.returncode:
         errors.append(parsed.stderr)
-    for p in [ROOT / 'scripts/serve_viewer.py', ROOT / 'scripts/package_viewer.py', ROOT / 'scripts/pipeline/reconstruct.py']:
+    for name in ['admin.js', 'gallery.js']:
+        result = subprocess.run(['node', '--check', str(app / name)], capture_output=True, text=True)
+        if result.returncode: errors.append(result.stderr)
+    for p in [ROOT / 'scripts/admin_server.py', ROOT / 'scripts/serve_viewer.py', ROOT / 'scripts/package_viewer.py', ROOT / 'scripts/pipeline/reconstruct.py', ROOT / 'scripts/pipeline/export_model.py']:
         ast.parse(p.read_text(), filename=str(p))
-    for relative in ['start-viewer.sh', 'scripts/pipeline/process_video.sh']:
+    for relative in ['start-admin.sh', 'start-viewer.sh', 'scripts/pipeline/process_video.sh']:
         if subprocess.run(['bash', '-n', str(ROOT / relative)], capture_output=True).returncode:
             errors.append(f'Shell syntax error: {relative}')
     if errors:
