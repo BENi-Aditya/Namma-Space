@@ -1178,6 +1178,8 @@
             document.getElementById('loader').style.display = 'none';
         }
 
+        const PUBLIC_VIEW = false;
+
         function getStorageKey() {
             return `namma_space_state_${activeModelId}`;
         }
@@ -1257,6 +1259,7 @@
         function loadSavedModelState() {
             const model = availableModels.find(m => m.id === activeModelId);
             if (model?.viewState) return model.viewState;
+            if (PUBLIC_VIEW) return null;
             // Preserve alignment/crop saved by the previous browser-only implementation.
             try { return JSON.parse(localStorage.getItem(getStorageKey()) || 'null'); }
             catch { return null; }
@@ -1293,7 +1296,7 @@
         async function fetchModelsManifest() {
             const dropdown = document.getElementById('model-dropdown');
             try {
-                const res = await fetch('models.json');
+                const res = await fetch('models.json', {cache: 'no-store'});
                 if (!res.ok) throw new Error(`Manifest HTTP ${res.status}`);
                 if (res.ok) {
                     const data = await res.json();
@@ -1377,6 +1380,11 @@
         }
 
         async function init() {
+            if (PUBLIC_VIEW) {
+                for (const id of ['btn-editor','btn-save-position-top','btn-save-pos-sidebar']) {
+                    document.getElementById(id).style.display = 'none';
+                }
+            }
             await fetchModelsManifest();
 
             const container = document.getElementById('canvas-container');

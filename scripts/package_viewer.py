@@ -2,6 +2,8 @@
 """Build a standalone static viewer package, with no external symlinks."""
 import argparse
 import json
+import hashlib
+import subprocess
 from pathlib import Path
 import shutil
 
@@ -25,6 +27,32 @@ def package(destination):
         target = destination / asset
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / asset, target)
+    # Public visitors receive the committed scene defaults, not their old local drafts.
+    for name in ['viewer.html', 'gallery.js']:
+        path = destination / name
+        path.write_text(path.read_text().replace('const PUBLIC_VIEW = false;', 'const PUBLIC_VIEW = true;'))
+    hashes = {}
+    for asset in assets:
+        sha = hashlib.sha256()
+        with (destination / asset).open('rb') as stream:
+            for block in iter(lambda: stream.read(1024*1024), b''): sha.update(block)
+        hashes[asset] = sha.hexdigest()
+    for model in data['models']:
+        for key in ['splat','stl','ply_mesh','pointcloud','obj']:
+            if model.get(key):
+                asset = model[key]
+                model[key] = asset + '?v=' + hashes[asset][:16]
+    (destination / 'models.json').write_text(json.dumps(data,indent=2)+'\n')
+    revision = subprocess.run(['git','rev-parse','HEAD'], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    (destination / 'deployment.json').write_text(json.dumps({'commit':revision,'assets':hashes},indent=2)+'\n')
+    version = hashlib.sha256((destination/'models.json').read_bytes()).hexdigest()[:16]
+    for name in ['viewer.html','gallery.js']:
+        path=destination/name
+        path.write_text(path.read_text().replace("fetch('models.json',", "fetch('models.json?v=" + version + "',"))
+    for name in ['index.html','viewer.html']:
+        path=destination/name
+        path.write_text(path.read_text().replace('href="studio.css"','href="studio.css?v='+revision[:12]+'"').replace('src="gallery.js"','src="gallery.js?v='+revision[:12]+'"'))
+    (destination / '.nojekyll').touch()
     print(f'Packaged {len(assets)} referenced assets at {destination}; deploy this directory to a static HTTPS host.')
 
 

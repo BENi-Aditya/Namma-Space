@@ -4,6 +4,10 @@ Smartphone captures to indoor 3D reconstruction and browser exploration, for IIT
 
 **Current state: local prototype, not submission-ready.** Existing splats and mesh/point-cloud outputs load locally. A bounded NeRF training test passed on this Mac's MPS GPU. A fresh complete capture-to-export run, convincing indoor reconstruction quality, public deployment, final video and portal submission remain outstanding. No measured FPS, metric scale, collision detection, POI search or AR capability is claimed.
 
+## Public deployment
+
+Pushes to `main` publish the model library through GitHub Actions / GitHub Pages. **Save Position & Lock → git commit → git push** publishes the saved model configuration. The installed commit hook includes new model exports automatically. See [publishing guide](docs/PUBLISHING.md) for setup on another computer, release status and exact synchronization behavior.
+
 ## Training studio — one command
 
 ```bash
@@ -77,7 +81,7 @@ python3 scripts/package_viewer.py
 # Deploy output/site to a static HTTPS host; no symlinks remain in that bundle.
 ```
 
-The packaged viewer includes large generated assets and is ignored by Git. Hosting is not configured. Do not publish private captures or claim source ownership until provenance is confirmed. Rendering dependency licences are included in [third-party notices](apps/viewer/THIRD_PARTY_NOTICES.md); no project-wide MIT licence is asserted.
+The packaged viewer includes large generated assets and is ignored by Git. Hosting uses the Publish Namma Space workflow. Do not publish private captures or claim source ownership until provenance is confirmed. Rendering dependency licences are included in [third-party notices](apps/viewer/THIRD_PARTY_NOTICES.md); no project-wide MIT licence is asserted.
 
 ## Round 1 delivery
 

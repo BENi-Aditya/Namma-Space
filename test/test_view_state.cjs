@@ -12,7 +12,7 @@ const vector = () => ({fromArray(v){this.value=[...v];}});
 const camera = {position:vector(), quaternion:vector(),updateProjectionMatrix(){this.updated=true;},updateMatrixWorld(){}};
 const controls = {target:vector(),update(){}};
 const badge = {};
-const context = {availableModels:[{id:'one',viewState:stored}],activeModelId:'one',camera,orbitControls:controls,
+const context = {PUBLIC_VIEW:false,availableModels:[{id:'one',viewState:stored}],activeModelId:'one',camera,orbitControls:controls,
   document:{getElementById(){return badge;}},localStorage:{getItem(){return '{"camera":"stale browser data"}';}},
   getStorageKey(){return 'legacy';},fitCameraToModel(){throw Error('Saved camera must not be replaced by auto-fit');}};
 vm.createContext(context);
@@ -23,4 +23,5 @@ assert.deepEqual(camera.position.value,[1,2,3]);assert.deepEqual(controls.target
 assert.equal(camera.fov,51);assert.equal(camera.zoom,1.2);assert.equal(camera.updated,true);
 context.queueSaveState();assert.equal(badge.innerText,'UNSAVED CHANGES');assert.equal(context.loadSavedModelState(),stored);
 assert.equal((html.match(/restoreCameraOrFit\(\);/g)||[]).length,2,'Both Gaussian and geometry loaders restore the saved camera');
+context.PUBLIC_VIEW=true; context.availableModels[0].viewState=null; assert.equal(context.loadSavedModelState(),null,'Public site must ignore browser-only drafts');
 console.log('PASS: persisted defaults override stale browser state; camera restores without auto-fit; edits do not overwrite lock.');
