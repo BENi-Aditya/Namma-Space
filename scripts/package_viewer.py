@@ -3,6 +3,7 @@
 import argparse
 import json
 import hashlib
+import os
 import subprocess
 from pathlib import Path
 import shutil
@@ -43,7 +44,9 @@ def package(destination):
                 asset = model[key]
                 model[key] = asset + '?v=' + hashes[asset][:16]
     (destination / 'models.json').write_text(json.dumps(data,indent=2)+'\n')
-    revision = subprocess.run(['git','rev-parse','HEAD'], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    revision = os.environ.get('VERCEL_GIT_COMMIT_SHA') or os.environ.get('GITHUB_SHA')
+    if not revision:
+        revision = subprocess.run(['git','rev-parse','HEAD'], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     (destination / 'deployment.json').write_text(json.dumps({'commit':revision,'assets':hashes},indent=2)+'\n')
     version = hashlib.sha256((destination/'models.json').read_bytes()).hexdigest()[:16]
     for name in ['viewer.html','gallery.js']:

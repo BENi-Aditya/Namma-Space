@@ -1,6 +1,6 @@
 # Publish the local model library
 
-GitHub Actions publishes the static viewer after every push to `main`. The public build contains all manifest-listed exports and their saved camera, rotation, position, scale and crop. The training admin panel and source videos are not part of the hosted site.
+Vercel publishes the static viewer after every push to `main` through its GitHub integration. GitHub Actions independently verifies the public build. The public build contains all manifest-listed exports and their saved camera, rotation, position, scale and crop. The training admin panel and source videos are not part of the hosted site.
 
 ## On this Mac
 
@@ -17,7 +17,7 @@ git push origin main
 
 The pre-commit hook automatically stages `apps/viewer/models.json` and snapshots every referenced model asset, including otherwise ignored new exports. It does not stage unrelated source edits. The hook needs Python 3.10+. If skipped, run `python3 scripts/release_assets.py snapshot --stage` before committing. A fresh clone needs `./setup-publishing.sh` once. Do not use `--no-verify` for model releases.
 
-A commit alone is local. Push triggers the **Publish Namma Space** workflow; the previous live version remains available until a deployment succeeds. Check the Actions tab for completion or errors. The public `deployment.json` identifies the exact deployed commit and SHA-256 of every asset.
+A commit alone is local. Push triggers the Vercel production deployment; the previous live version remains available until a deployment succeeds. Check the Vercel project Deployments tab for publication status; GitHub Actions reports independent build checks. The public `deployment.json` identifies the exact deployed commit and SHA-256 of every asset.
 
 ## What stays synchronized
 
@@ -48,4 +48,4 @@ Choose a new output folder if it already exists. The public package is read-only
 
 ## Storage limits
 
-The initial four-model release is approximately 226 MiB unpacked and 172 MiB compressed. Versioned assets make each deployed commit reproducible, but repeated new reconstructions grow Git history. If the collection approaches GitHub Pages' 1 GB published-site limit, move the asset store to object storage rather than deleting working models. Existing model parts are reused when only crop/camera settings change.
+The initial four-model release is approximately 226 MiB unpacked and 172 MiB compressed. Versioned assets make each deployed commit reproducible, but repeated new reconstructions grow Git history. As the collection grows, monitor Vercel storage/bandwidth usage and move large asset archives to object storage if needed. Existing model parts are reused when only crop/camera settings change.
