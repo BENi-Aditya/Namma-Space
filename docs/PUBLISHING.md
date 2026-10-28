@@ -28,7 +28,7 @@ A commit alone is local. Push triggers the Vercel production deployment; the pre
 - Exported models are compressed into content-addressed parts (at most 40 MiB each) under `deployment/assets/`. This avoids putting a >100 MiB file into a single Git blob. Raw captures, checkpoints and training logs remain local.
 - The deployment restores original files byte-for-byte and checks their SHA-256. Missing/corrupt assets stop the build instead of silently publishing an incomplete library.
 - Changed asset and manifest URLs receive content versions so browsers request the new data.
-- Public visitors load committed defaults, ignoring old browser-only alignment drafts. Owner editing/saving controls stay local. Camera navigation is still available publicly.
+- Public visitors load committed defaults, ignoring old browser-only alignment drafts. Public Edit mode lets visitors try crop, rotation, scale and display controls for their current visit. Saving published defaults stays local; refreshing restores the committed version.
 
 Public WebGL results use the same renderer, scene data and saved settings as local. Different viewport aspect ratios, screen sizes and graphics hardware can affect framing and performance; they do not change saved transforms/crop. The full Gaussian download is large, so the first load can take longer on slower connections.
 
@@ -47,7 +47,7 @@ python3 scripts/package_viewer.py --output output/public-preview
 python3 -m http.server 8090 --directory output/public-preview
 ```
 
-Choose a new output folder if it already exists. The public package is read-only; use the normal local admin/viewer server to save defaults, then commit/push again.
+Choose a new output folder if it already exists. Public edits last for the current visit; use the normal local admin/viewer server to save defaults, then commit/push again.
 
 ## Storage limits
 

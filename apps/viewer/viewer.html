@@ -96,6 +96,8 @@
             gap: 12px;
         }
 
+        .models-link { color: inherit; margin: 0 16px; pointer-events: auto; }
+
         .header-left, .header-right {
             display: flex;
             align-items: center;
@@ -710,7 +712,7 @@
     <div id="blueprint-grid"></div>
 
     <!-- Unified Studio Header (No-Overlap Symmetrical Flex Layout) -->
-    <header class="top-header"><a href="./" style="color:inherit;margin:0 16px">← Models</a>
+    <header class="top-header"><a href="./" class="models-link">← Models</a>
         <div class="header-left">
             <div class="title-block">
                 <h1>NAMMA SPACE // INDOOR VIEWER</h1>
@@ -737,7 +739,7 @@
 
         <div class="header-right">
             <button id="btn-walk" class="save-pos-btn">Enter walkthrough</button>
-            <button id="btn-editor" class="save-pos-btn">Editor</button>
+            <button id="btn-editor" class="save-pos-btn" aria-expanded="false" aria-controls="editor-sidebar">Edit mode</button>
             <button id="btn-home" class="save-pos-btn">Reset view</button>
             <button id="btn-save-position-top" class="save-pos-btn" title="Lock & Save current model position as default">
                 <span>💾 Save Position</span>
@@ -794,7 +796,7 @@
     </div>
 
     <!-- Right Engineering Sidebar Inspector -->
-    <div class="sidebar">
+    <div id="editor-sidebar" class="sidebar">
         <!-- Navigation Tabs -->
         <div class="tab-bar">
             <button class="tab-btn active" data-tab="tab-align">Align</button>
@@ -1185,7 +1187,7 @@
         }
 
         async function saveModelState(isManual = false) {
-            if (!modelGroup || assetLoading) return;
+            if (PUBLIC_VIEW || !modelGroup || assetLoading) return;
 
             const savedTarget = camera.getWorldDirection(new THREE.Vector3())
                 .multiplyScalar(Math.max(camera.position.distanceTo(orbitControls.target), 0.1)).add(camera.position);
@@ -1253,7 +1255,7 @@
         }
 
         function queueSaveState() {
-            document.getElementById('saved-badge-text').innerText = 'UNSAVED CHANGES';
+            document.getElementById('saved-badge-text').innerText = PUBLIC_VIEW ? 'SESSION EDITS' : 'UNSAVED CHANGES';
         }
 
         function loadSavedModelState() {
@@ -1381,7 +1383,8 @@
 
         async function init() {
             if (PUBLIC_VIEW) {
-                for (const id of ['btn-editor','btn-save-position-top','btn-save-pos-sidebar']) {
+                document.querySelector('.saved-badge').style.display = 'none';
+                for (const id of ['btn-save-position-top','btn-save-pos-sidebar']) {
                     document.getElementById(id).style.display = 'none';
                 }
             }
@@ -1468,7 +1471,11 @@
 
             setupEventListeners();
             document.getElementById('btn-editor').addEventListener('click', () => {
-                document.body.classList.toggle('demo-mode');
+                const editing = !document.body.classList.toggle('demo-mode');
+                const button = document.getElementById('btn-editor');
+                button.textContent = editing ? 'Exit edit mode' : 'Edit mode';
+                button.setAttribute('aria-expanded', String(editing));
+                if (editing && PUBLIC_VIEW) showToast('Try crop and alignment controls. Edits last for this visit only.');
             });
             document.getElementById('btn-home').addEventListener('click', () => {
                 dragLook = false;
