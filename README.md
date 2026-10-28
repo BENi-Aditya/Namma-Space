@@ -2,9 +2,11 @@
 
 Smartphone captures to indoor 3D reconstruction and browser exploration, for IIT Bombay Techfest 2026-27. Team ID: **TM-C2093A5006E** (provided by team owner; portal registration not independently checked).
 
-**Current state: local prototype, not submission-ready.** Existing splats and mesh/point-cloud outputs load locally. A bounded NeRF training test passed on this Mac's MPS GPU. A fresh complete capture-to-export run, convincing indoor reconstruction quality, public deployment, final video and portal submission remain outstanding. No measured FPS, metric scale, collision detection, POI search or AR capability is claimed.
+**Current state: local prototype, not submission-ready.** Existing splats and mesh/point-cloud outputs load locally. A bounded NeRF training test passed on this Mac's MPS GPU. A fresh complete capture-to-export run, convincing indoor reconstruction quality, final video and portal submission remain outstanding. No measured FPS, metric scale, collision detection, POI search or AR capability is claimed.
 
 ## Public deployment
+
+Live model library: **https://namma-space-omega.vercel.app/**
 
 Pushes to `main` publish the model library through Vercel’s GitHub integration. **Save Position & Lock → git commit → git push** publishes the saved model configuration. The installed commit hook includes new model exports automatically. See [publishing guide](docs/PUBLISHING.md) for setup on another computer, release status and exact synchronization behavior.
 

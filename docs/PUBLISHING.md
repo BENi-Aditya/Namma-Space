@@ -1,5 +1,8 @@
 # Publish the local model library
 
+Production: **https://namma-space-omega.vercel.app/**
+Project: https://vercel.com/dheerajmoodys-gmailcoms-projects/namma-space
+
 Vercel publishes the static viewer after every push to `main` through its GitHub integration. GitHub Actions independently verifies the public build. The public build contains all manifest-listed exports and their saved camera, rotation, position, scale and crop. The training admin panel and source videos are not part of the hosted site.
 
 ## On this Mac
