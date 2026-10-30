@@ -46,6 +46,37 @@
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.003.gzpart"
       ]
     },
+    "models/capture-0b5ade446936/splat.ply": {
+      "sha256": "d38de2c60771356d0457ca99c15a8eced8f28ec1c866dcb094db8bb53c438e52",
+      "bytes": 30878611,
+      "chunks": [
+        "d38de2c60771356d0457ca99c15a8eced8f28ec1c866dcb094db8bb53c438e52.000.gzpart"
+      ]
+    },
+    "models/capture-b50e7e9858dd/splat.ply": {
+      "sha256": "37744d21b93a428164156bf7ea210ea86a3a3c0decd2f32bbbac06b2c4105d0b",
+      "bytes": 44087531,
+      "chunks": [
+        "37744d21b93a428164156bf7ea210ea86a3a3c0decd2f32bbbac06b2c4105d0b.000.gzpart"
+      ]
+    },
+    "models/parking-recovery-01/splat.ply": {
+      "sha256": "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af",
+      "bytes": 472001552,
+      "chunks": [
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.000.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.001.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.002.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.003.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.004.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.005.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.006.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.007.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.008.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.009.gzpart",
+        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.010.gzpart"
+      ]
+    },
     "models/your-video/mesh/model.obj": {
       "sha256": "cf8885d62d54b32e0521f6e04d5b777731cd67cdf7fbe101a6a7e2e3aec81759",
       "bytes": 11045065,

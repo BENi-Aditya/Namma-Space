@@ -1,8 +1,150 @@
 {
   "models": [
     {
+      "id": "capture-0b5ade446936",
+      "name": "Hallway",
+      "method": "brush",
+      "splat": "models/capture-0b5ade446936/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units"
+    },
+    {
+      "id": "capture-b50e7e9858dd",
+      "name": "Meeting Room",
+      "method": "brush",
+      "splat": "models/capture-b50e7e9858dd/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units",
+      "viewState": {
+        "modelId": "capture-b50e7e9858dd",
+        "version": 1,
+        "camera": {
+          "position": [
+            7.062257351151844,
+            26.315879028254564,
+            23.505482788232843
+          ],
+          "quaternion": [
+            -0.3551783397733141,
+            0.15942127961989871,
+            0.06161091177062032,
+            0.9190415105483641
+          ],
+          "target": [
+            -0.9666111394668864,
+            4.654711486278806,
+            1.0591902623033604
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": true,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": -1.6805318303778034,
+          "y": -0.0914506298347542,
+          "z": 0.19257027086669173
+        },
+        "position": {
+          "x": 0,
+          "y": 8.347467770640504,
+          "z": 5.310254166175774
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "29",
+          "xMax": "74",
+          "yMin": "54",
+          "yMax": "94",
+          "zMin": "21",
+          "zMax": "67",
+          "enabled": true,
+          "showHelper": true
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": false
+        }
+      }
+    },
+    {
+      "id": "parking-recovery-01",
+      "name": "Parking area \u00b7 recovery",
+      "method": "brush",
+      "splat": "models/parking-recovery-01/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units",
+      "viewState": {
+        "modelId": "parking-recovery-01",
+        "version": 1,
+        "camera": {
+          "position": [
+            18.031737179649728,
+            5.752129675052075,
+            5.077688944804526
+          ],
+          "quaternion": [
+            -0.16349325930026912,
+            0.49851932905763874,
+            0.09635807062327406,
+            0.8458507876363637
+          ],
+          "target": [
+            5.684115336423693,
+            0.08425462539775452,
+            -1.7589167920369384
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": true,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": -1.876917423096842,
+          "y": -0.0916076622313627,
+          "z": -0.01078538029232726
+        },
+        "position": {
+          "x": 1.4587160402166628,
+          "y": 0.9003845764653091,
+          "z": 0
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "23",
+          "xMax": "67",
+          "yMin": "46",
+          "yMax": "55",
+          "zMin": "44",
+          "zMax": "57",
+          "enabled": true,
+          "showHelper": true
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": false
+        }
+      }
+    },
+    {
       "id": "IMG_2008",
-      "name": "IMG_2008 (Gaussian Splats)",
+      "name": "Laptop Outdoors",
       "method": "splatfacto",
       "step": "Trained with friend on GPU",
       "timestamp": "2026-10-08",
@@ -114,5 +256,5 @@
       "units": "uncalibrated reconstruction units"
     }
   ],
-  "latest": "IMG_2008"
+  "latest": "capture-0b5ade446936"
 }
