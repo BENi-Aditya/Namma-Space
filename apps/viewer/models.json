@@ -1,14 +1,6 @@
 {
   "models": [
     {
-      "id": "capture-0b5ade446936",
-      "name": "Hallway",
-      "method": "brush",
-      "splat": "models/capture-0b5ade446936/splat.ply",
-      "defaultAsset": "gaussian",
-      "units": "uncalibrated reconstruction units"
-    },
-    {
       "id": "capture-b50e7e9858dd",
       "name": "Meeting Room",
       "method": "brush",
@@ -256,5 +248,5 @@
       "units": "uncalibrated reconstruction units"
     }
   ],
-  "latest": "capture-0b5ade446936"
+  "latest": "capture-b50e7e9858dd"
 }

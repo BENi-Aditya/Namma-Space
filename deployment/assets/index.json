@@ -46,13 +46,6 @@
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.003.gzpart"
       ]
     },
-    "models/capture-0b5ade446936/splat.ply": {
-      "sha256": "d38de2c60771356d0457ca99c15a8eced8f28ec1c866dcb094db8bb53c438e52",
-      "bytes": 30878611,
-      "chunks": [
-        "d38de2c60771356d0457ca99c15a8eced8f28ec1c866dcb094db8bb53c438e52.000.gzpart"
-      ]
-    },
     "models/capture-b50e7e9858dd/splat.ply": {
       "sha256": "37744d21b93a428164156bf7ea210ea86a3a3c0decd2f32bbbac06b2c4105d0b",
       "bytes": 44087531,
