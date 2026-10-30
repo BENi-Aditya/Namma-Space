@@ -1,41 +1,6 @@
 {
   "version": 1,
   "assets": {
-    "models/1-emergency/mesh/model.obj": {
-      "sha256": "7a6fd2279918419a345a53720c6089b8f6388d400f38095ddeee2cb9938f4b48",
-      "bytes": 18784117,
-      "chunks": [
-        "7a6fd2279918419a345a53720c6089b8f6388d400f38095ddeee2cb9938f4b48.000.gzpart"
-      ]
-    },
-    "models/1-emergency/mesh/model.stl": {
-      "sha256": "fa6ed50d30424db6242a7fd534ab7196d0787db1cabfc7b6b2351731384e4f66",
-      "bytes": 7372234,
-      "chunks": [
-        "fa6ed50d30424db6242a7fd534ab7196d0787db1cabfc7b6b2351731384e4f66.000.gzpart"
-      ]
-    },
-    "models/1-emergency/mesh/model_mesh.ply": {
-      "sha256": "b269bdb512e27ee16bcfc0efe30264ca040a2b8487d810269aff6f4545adaebe",
-      "bytes": 9386953,
-      "chunks": [
-        "b269bdb512e27ee16bcfc0efe30264ca040a2b8487d810269aff6f4545adaebe.000.gzpart"
-      ]
-    },
-    "models/1-emergency/pointcloud/point_cloud.ply": {
-      "sha256": "73120057d2981521f2be93c0522cbe66035d39a2819613ecc4e6882e09434a91",
-      "bytes": 4087277,
-      "chunks": [
-        "73120057d2981521f2be93c0522cbe66035d39a2819613ecc4e6882e09434a91.000.gzpart"
-      ]
-    },
-    "models/2-run/pointcloud/sparse_point_cloud.ply": {
-      "sha256": "42eafca14ba990c7bdc7a7f29982205dd5b9b59e1461c5217efe1e84cff87d34",
-      "bytes": 11915136,
-      "chunks": [
-        "42eafca14ba990c7bdc7a7f29982205dd5b9b59e1461c5217efe1e84cff87d34.000.gzpart"
-      ]
-    },
     "models/IMG_2008/splat.ply": {
       "sha256": "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12",
       "bytes": 161370667,
@@ -44,6 +9,15 @@
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.001.gzpart",
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.002.gzpart",
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.003.gzpart"
+      ]
+    },
+    "models/capture-103670e9f859/splat.ply": {
+      "sha256": "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3",
+      "bytes": 100235471,
+      "chunks": [
+        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.000.gzpart",
+        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.001.gzpart",
+        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.002.gzpart"
       ]
     },
     "models/capture-b50e7e9858dd/splat.ply": {
@@ -68,34 +42,6 @@
         "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.008.gzpart",
         "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.009.gzpart",
         "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.010.gzpart"
-      ]
-    },
-    "models/your-video/mesh/model.obj": {
-      "sha256": "cf8885d62d54b32e0521f6e04d5b777731cd67cdf7fbe101a6a7e2e3aec81759",
-      "bytes": 11045065,
-      "chunks": [
-        "cf8885d62d54b32e0521f6e04d5b777731cd67cdf7fbe101a6a7e2e3aec81759.000.gzpart"
-      ]
-    },
-    "models/your-video/mesh/model.stl": {
-      "sha256": "123088780a63e9a2e305f878fa0b96aff05718bfd888d74d48f1e2896b339da1",
-      "bytes": 2832234,
-      "chunks": [
-        "123088780a63e9a2e305f878fa0b96aff05718bfd888d74d48f1e2896b339da1.000.gzpart"
-      ]
-    },
-    "models/your-video/mesh/model_mesh.ply": {
-      "sha256": "91c722b702d49f187eb6d4c9948cd12dd4c440aab88a8f12b4e3c128b9afbfd5",
-      "bytes": 5785734,
-      "chunks": [
-        "91c722b702d49f187eb6d4c9948cd12dd4c440aab88a8f12b4e3c128b9afbfd5.000.gzpart"
-      ]
-    },
-    "models/your-video/pointcloud/point_cloud.ply": {
-      "sha256": "73844f91b86fef57f7beed5c482fec4533102fc982fc823e924c65b3caa34784",
-      "bytes": 2709440,
-      "chunks": [
-        "73844f91b86fef57f7beed5c482fec4533102fc982fc823e924c65b3caa34784.000.gzpart"
       ]
     }
   }
