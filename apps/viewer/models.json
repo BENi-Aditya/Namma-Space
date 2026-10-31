@@ -1,6 +1,81 @@
 {
   "models": [
     {
+      "id": "kitchen-splat-whatsapp",
+      "name": "Living Room - (have to zoom inside the model)",
+      "method": "gaussian splatting",
+      "splat": "models/kitchen-splat-whatsapp/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units"
+    },
+    {
+      "id": "capture-c0574185abba",
+      "name": "Hallway-SIL",
+      "method": "brush",
+      "splat": "models/capture-c0574185abba/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units",
+      "viewState": {
+        "modelId": "capture-c0574185abba",
+        "version": 1,
+        "camera": {
+          "position": [
+            -49.32020137088665,
+            16.306135614072986,
+            33.39705496648164
+          ],
+          "quaternion": [
+            -0.13437664532967974,
+            -0.5831819386043537,
+            -0.09856570806310441,
+            0.7950638621328656
+          ],
+          "target": [
+            -3.506900202116775,
+            -0.40714923161044325,
+            18.97005280609997
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": true,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": 0.2820018778018718,
+          "y": -0.008589022779797163,
+          "z": 2.7767925809836393
+        },
+        "position": {
+          "x": 4.933278763108767,
+          "y": 4.053870104088404,
+          "z": -2.4732306486481246
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "37",
+          "xMax": "65",
+          "yMin": "54",
+          "yMax": "70",
+          "zMin": "43",
+          "zMax": "64",
+          "enabled": true,
+          "showHelper": true
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": false
+        }
+      }
+    },
+    {
       "id": "capture-103670e9f859",
       "name": "IMG_2523",
       "method": "brush",
@@ -220,5 +295,5 @@
       }
     }
   ],
-  "latest": "capture-103670e9f859"
+  "latest": "kitchen-splat-whatsapp"
 }

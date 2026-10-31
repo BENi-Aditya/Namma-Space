@@ -27,6 +27,25 @@
         "37744d21b93a428164156bf7ea210ea86a3a3c0decd2f32bbbac06b2c4105d0b.000.gzpart"
       ]
     },
+    "models/capture-c0574185abba/splat.ply": {
+      "sha256": "7717d2d66a2967e942d6c6b274d4bd9adddf3362ff87b95df955e6f8b37c1ff0",
+      "bytes": 41912555,
+      "chunks": [
+        "7717d2d66a2967e942d6c6b274d4bd9adddf3362ff87b95df955e6f8b37c1ff0.000.gzpart"
+      ]
+    },
+    "models/kitchen-splat-whatsapp/splat.ply": {
+      "sha256": "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9",
+      "bytes": 256142938,
+      "chunks": [
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.000.gzpart",
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.001.gzpart",
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.002.gzpart",
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.003.gzpart",
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.004.gzpart",
+        "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.005.gzpart"
+      ]
+    },
     "models/parking-recovery-01/splat.ply": {
       "sha256": "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af",
       "bytes": 472001552,
