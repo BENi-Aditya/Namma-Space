@@ -1,39 +1,45 @@
 {
   "models": [
     {
-      "id": "kitchen-splat-whatsapp",
-      "name": "Living Room - (have to zoom inside the model)",
-      "method": "gaussian splatting",
-      "splat": "models/kitchen-splat-whatsapp/splat.ply",
-      "defaultAsset": "gaussian",
-      "units": "uncalibrated reconstruction units"
-    },
-    {
-      "id": "capture-c0574185abba",
-      "name": "Hallway-SIL",
-      "method": "brush",
-      "splat": "models/capture-c0574185abba/splat.ply",
-      "defaultAsset": "gaussian",
-      "units": "uncalibrated reconstruction units",
+      "id": "auditorium_30k_room_only",
+      "name": "Auditorium - Cleaned (COLMAP-supported)",
+      "method": "splatfacto",
+      "step": "30,000 iterations - unsupported floaters removed",
+      "timestamp": "2026-11-01",
+      "splat": "models/auditorium_30k_room_only/splat.ply",
+      "splatCount": 853567,
+      "bounds": [
+        1.7,
+        1.9,
+        0.66
+      ],
+      "cameraUp": [
+        0,
+        0,
+        1
+      ],
+      "maxCameraDistance": 1.05,
+      "allowPan": false,
+      "movementSpeedScale": 0.07,
+      "maxScreenSpaceSplatSize": 64,
+      "renderPixelRatioScale": 0.65,
       "viewState": {
-        "modelId": "capture-c0574185abba",
-        "version": 1,
         "camera": {
           "position": [
-            -49.32020137088665,
-            16.306135614072986,
-            33.39705496648164
+            0.35007364,
+            -0.08412433,
+            0.02730557
           ],
           "quaternion": [
-            -0.13437664532967974,
-            -0.5831819386043537,
-            -0.09856570806310441,
-            0.7950638621328656
+            0.52327031,
+            0.48402923,
+            0.46723457,
+            0.52306374
           ],
           "target": [
-            -3.506900202116775,
-            -0.40714923161044325,
-            18.97005280609997
+            -0.64526266,
+            0.01097276,
+            0.0434978
           ],
           "fov": 50,
           "near": 0.01,
@@ -41,172 +47,61 @@
           "zoom": 1
         },
         "display": {
-          "grid": true,
+          "grid": false,
           "speed": "7",
           "light": "1.2"
         },
-        "rotation": {
-          "x": 0.2820018778018718,
-          "y": -0.008589022779797163,
-          "z": 2.7767925809836393
-        },
-        "position": {
-          "x": 4.933278763108767,
-          "y": 4.053870104088404,
-          "z": -2.4732306486481246
-        },
-        "scale": 1,
         "crop": {
-          "xMin": "37",
-          "xMax": "65",
-          "yMin": "54",
-          "yMax": "70",
-          "zMin": "43",
-          "zMax": "64",
+          "xMin": "0",
+          "xMax": "100",
+          "yMin": "0",
+          "yMax": "100",
+          "zMin": "0",
+          "zMax": "100",
           "enabled": true,
-          "showHelper": true
-        },
-        "assetType": "gaussian",
-        "material": {
-          "color": "#d4d4d8",
-          "roughness": "0.4",
-          "metalness": "0.1",
-          "wireframe": false
+          "showHelper": false
         }
-      }
-    },
-    {
-      "id": "capture-103670e9f859",
-      "name": "IMG_2523",
-      "method": "brush",
-      "splat": "models/capture-103670e9f859/splat.ply",
+      },
       "defaultAsset": "gaussian",
       "units": "uncalibrated reconstruction units"
     },
     {
-      "id": "capture-b50e7e9858dd",
-      "name": "Meeting Room",
-      "method": "brush",
-      "splat": "models/capture-b50e7e9858dd/splat.ply",
+      "id": "kitchen_30k",
+      "name": "Kitchen - Full Room Gaussian Splat",
+      "method": "splatfacto",
+      "step": "30,000 iterations",
+      "timestamp": "2026-10-31",
+      "splat": "models/kitchen_30k/splat.ply",
       "defaultAsset": "gaussian",
       "units": "uncalibrated reconstruction units",
       "viewState": {
-        "modelId": "capture-b50e7e9858dd",
+        "modelId": "kitchen_30k",
         "version": 1,
-        "camera": {
-          "position": [
-            7.062257351151844,
-            26.315879028254564,
-            23.505482788232843
-          ],
-          "quaternion": [
-            -0.3551783397733141,
-            0.15942127961989871,
-            0.06161091177062032,
-            0.9190415105483641
-          ],
-          "target": [
-            -0.9666111394668864,
-            4.654711486278806,
-            1.0591902623033604
-          ],
-          "fov": 50,
-          "near": 0.01,
-          "far": 1000,
-          "zoom": 1
-        },
         "display": {
-          "grid": true,
+          "grid": false,
           "speed": "7",
           "light": "1.2"
         },
         "rotation": {
-          "x": -1.6805318303778034,
-          "y": -0.0914506298347542,
-          "z": 0.19257027086669173
+          "x": 0,
+          "y": 0,
+          "z": 0
         },
         "position": {
           "x": 0,
-          "y": 8.347467770640504,
-          "z": 5.310254166175774
-        },
-        "scale": 1,
-        "crop": {
-          "xMin": "29",
-          "xMax": "74",
-          "yMin": "54",
-          "yMax": "94",
-          "zMin": "21",
-          "zMax": "67",
-          "enabled": true,
-          "showHelper": true
-        },
-        "assetType": "gaussian",
-        "material": {
-          "color": "#d4d4d8",
-          "roughness": "0.4",
-          "metalness": "0.1",
-          "wireframe": false
-        }
-      }
-    },
-    {
-      "id": "parking-recovery-01",
-      "name": "Parking area \u00b7 recovery",
-      "method": "brush",
-      "splat": "models/parking-recovery-01/splat.ply",
-      "defaultAsset": "gaussian",
-      "units": "uncalibrated reconstruction units",
-      "viewState": {
-        "modelId": "parking-recovery-01",
-        "version": 1,
-        "camera": {
-          "position": [
-            18.031737179649728,
-            5.752129675052075,
-            5.077688944804526
-          ],
-          "quaternion": [
-            -0.16349325930026912,
-            0.49851932905763874,
-            0.09635807062327406,
-            0.8458507876363637
-          ],
-          "target": [
-            5.684115336423693,
-            0.08425462539775452,
-            -1.7589167920369384
-          ],
-          "fov": 50,
-          "near": 0.01,
-          "far": 1000,
-          "zoom": 1
-        },
-        "display": {
-          "grid": true,
-          "speed": "7",
-          "light": "1.2"
-        },
-        "rotation": {
-          "x": -1.876917423096842,
-          "y": -0.0916076622313627,
-          "z": -0.01078538029232726
-        },
-        "position": {
-          "x": 1.4587160402166628,
-          "y": 0.9003845764653091,
+          "y": 15,
           "z": 0
         },
         "scale": 1,
         "crop": {
-          "xMin": "23",
-          "xMax": "67",
-          "yMin": "46",
-          "yMax": "55",
-          "zMin": "44",
-          "zMax": "57",
+          "xMin": "0",
+          "xMax": "100",
+          "yMin": "0",
+          "yMax": "100",
+          "zMin": "0",
+          "zMax": "100",
           "enabled": true,
-          "showHelper": true
+          "showHelper": false
         },
         "assetType": "gaussian",
         "material": {
@@ -214,8 +109,41 @@
           "roughness": "0.4",
           "metalness": "0.1",
           "wireframe": false
+        },
+        "camera": {
+          "position": [
+            -0.002096973853458696,
+            14.676551808620918,
+            0.006405144743860828
+          ],
+          "quaternion": [
+            0.690965564537248,
+            -0.11254950758753962,
+            0.1102287503750283,
+            0.7055131604415924
+          ],
+          "target": [
+            1.431146867680866e-17,
+            15,
+            -6.418476861114186e-17
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
         }
-      }
+      },
+      "splatCount": 1032828,
+      "cameraUp": [
+        0,
+        0,
+        1
+      ],
+      "allowPan": false,
+      "movementSpeedScale": 0.07,
+      "maxScreenSpaceSplatSize": 64,
+      "renderPixelRatioScale": 0.65,
+      "maxCameraDistance": 1.05
     },
     {
       "id": "IMG_2008",
@@ -293,7 +221,150 @@
           "wireframe": true
         }
       }
+    },
+    {
+      "id": "capture-b50e7e9858dd",
+      "name": "Meeting Room",
+      "method": "brush",
+      "splat": "models/capture-b50e7e9858dd/splat.ply",
+      "defaultAsset": "gaussian",
+      "units": "uncalibrated reconstruction units",
+      "viewState": {
+        "modelId": "capture-b50e7e9858dd",
+        "version": 1,
+        "camera": {
+          "position": [
+            7.062257351151844,
+            26.315879028254564,
+            23.505482788232843
+          ],
+          "quaternion": [
+            -0.3551783397733141,
+            0.15942127961989871,
+            0.06161091177062032,
+            0.9190415105483641
+          ],
+          "target": [
+            -0.9666111394668864,
+            4.654711486278806,
+            1.0591902623033604
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": true,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": -1.6805318303778034,
+          "y": -0.0914506298347542,
+          "z": 0.19257027086669173
+        },
+        "position": {
+          "x": 0,
+          "y": 8.347467770640504,
+          "z": 5.310254166175774
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "29",
+          "xMax": "74",
+          "yMin": "54",
+          "yMax": "94",
+          "zMin": "21",
+          "zMax": "67",
+          "enabled": true,
+          "showHelper": true
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": false
+        }
+      },
+      "splatCount": 186805
+    },
+    {
+      "id": "lego_30k_clean",
+      "name": "Lego - Cleaned Gaussian Splat",
+      "method": "splatfacto",
+      "step": "30,000 iterations - opacity and spatial-support filtered",
+      "timestamp": "2026-10-31",
+      "splat": "models/lego_30k_clean_dense_components/splat.ply",
+      "splatCount": 51209,
+      "defaultAsset": "gaussian",
+      "units": "synthetic scene units",
+      "viewState": {
+        "modelId": "lego_30k_clean",
+        "version": 1,
+        "camera": {
+          "position": [
+            -0.004955520347362796,
+            11.023389890630195,
+            3.3249904902607956
+          ],
+          "quaternion": [
+            0.4564166162930876,
+            0.07581077931944566,
+            -0.03906796287279209,
+            0.8856694035516395
+          ],
+          "target": [
+            -0.5886840806891532,
+            15.84355212355203,
+            -0.05976961096754918
+          ],
+          "fov": 50,
+          "near": 0.01,
+          "far": 1000,
+          "zoom": 1
+        },
+        "display": {
+          "grid": false,
+          "speed": "7",
+          "light": "1.2"
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "position": {
+          "x": 0,
+          "y": 15,
+          "z": 0
+        },
+        "scale": 1,
+        "crop": {
+          "xMin": "0",
+          "xMax": "100",
+          "yMin": "0",
+          "yMax": "100",
+          "zMin": "0",
+          "zMax": "100",
+          "enabled": true,
+          "showHelper": false
+        },
+        "assetType": "gaussian",
+        "material": {
+          "color": "#d4d4d8",
+          "roughness": "0.4",
+          "metalness": "0.1",
+          "wireframe": false
+        }
+      },
+      "maxCameraDistance": 7.5,
+      "allowPan": false,
+      "movementSpeedScale": 0.07,
+      "maxScreenSpaceSplatSize": 16,
+      "renderPixelRatioScale": 0.85
     }
   ],
-  "latest": "kitchen-splat-whatsapp"
+  "latest": "auditorium_30k_room_only"
 }

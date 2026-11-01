@@ -694,6 +694,127 @@
         .nav-hud { max-width: calc(100vw - 28px); flex-wrap: wrap; white-space: normal; }
         #viewer-status { position: absolute; top: 120px; left: 20px; z-index: 9;
             background: #111114dd; padding: 8px 12px; max-width: 70vw; pointer-events: none; }
+
+        @media (max-width: 760px) {
+            .top-header {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .models-link {
+                grid-column: 1;
+                grid-row: 1;
+                margin: 0;
+                font-size: 12px;
+            }
+
+            .header-left {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                min-width: 0;
+                flex-wrap: nowrap;
+                gap: 8px;
+                padding: 6px 8px;
+            }
+
+            .title-block {
+                min-width: 0;
+                gap: 0;
+                padding-right: 6px;
+            }
+
+            .top-header h1 {
+                font-size: 9px;
+                line-height: 1.2;
+                white-space: normal;
+            }
+
+            .model-select {
+                flex: 1 1 auto;
+                width: 0;
+                min-width: 0;
+                max-width: none;
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+
+            .header-right {
+                grid-column: 2;
+                grid-row: 1;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 4px;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            .header-right .save-pos-btn {
+                padding: 6px 7px;
+                font-size: 10px;
+            }
+
+            .gizmo-toolbar {
+                display: none;
+            }
+
+            .nav-hud {
+                left: 8px;
+                right: 8px;
+                bottom: 8px;
+                width: auto;
+                max-width: none;
+                max-height: 24vh;
+                overflow-y: auto;
+                transform: none;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 4px;
+                padding: 6px;
+            }
+
+            .nav-tag {
+                font-size: 9px;
+            }
+
+            .nav-tag:not(:last-child)::after {
+                margin-left: 3px;
+            }
+
+            .nav-speed-control {
+                padding-left: 4px;
+            }
+
+            .speed-slider {
+                width: 52px;
+            }
+
+            #viewer-status {
+                top: 102px;
+                left: 8px;
+                max-width: calc(100vw - 16px);
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .stats-hud {
+                display: none;
+            }
+
+            .sidebar {
+                top: 128px;
+                right: 8px;
+                bottom: 26vh;
+                width: min(320px, calc(100vw - 16px));
+            }
+        }
     </style>
 
     <script type="importmap">
@@ -1072,6 +1193,8 @@
         let activeModelId = 'IMG_2008';
         let currentAssetType = 'gaussian';
         let saveStateTimeout = null;
+        let renderQualityTimeout = null;
+        let reducedRenderQuality = false;
         let sceneNotice = '';
         let assetLoading = false;
         let dragLook = false, draggingLook = false;
@@ -1087,7 +1210,7 @@
 
         function resetCameraPosition() {
             currentVelocity.set(0, 0, 0);
-            fitCameraToModel();
+            restoreCameraOrFit();
             showToast('Camera View Reset (Shift+C)');
         }
 
@@ -1127,7 +1250,7 @@
                 const forward = new THREE.Vector3();
                 camera.getWorldDirection(forward);
                 if (document.pointerLockElement === renderer.domElement || dragLook) {
-                    forward.y = 0;
+                    forward.addScaledVector(camera.up, -forward.dot(camera.up));
                     forward.normalize();
                 }
 
@@ -1144,11 +1267,15 @@
                     moveDir.normalize();
                 }
 
-                const effectiveSpeed = cameraBaseSpeed * (isSprint ? 3.0 : 1.0);
+                const model = availableModels.find(item => item.id === activeModelId);
+                const speedScale = Number.isFinite(model?.movementSpeedScale) && model.movementSpeedScale > 0
+                    ? model.movementSpeedScale
+                    : 1;
+                const effectiveSpeed = cameraBaseSpeed * speedScale * (isSprint ? 3.0 : 1.0);
                 targetVelocity.addScaledVector(moveDir, effectiveSpeed);
 
-                if (isUp) targetVelocity.y += effectiveSpeed * 0.9;
-                if (isDown) targetVelocity.y -= effectiveSpeed * 0.9;
+                if (isUp) targetVelocity.addScaledVector(camera.up, effectiveSpeed * 0.9);
+                if (isDown) targetVelocity.addScaledVector(camera.up, -effectiveSpeed * 0.9);
             }
 
             const lerpFactor = 1.0 - Math.exp(-accelerationRate * delta);
@@ -1355,6 +1482,40 @@
             return null;
         }
 
+        function getRendererPixelRatio() {
+            const model = availableModels.find(item => item.id === activeModelId);
+            const scale = Number.isFinite(model?.renderPixelRatioScale) && model.renderPixelRatioScale > 0
+                ? model.renderPixelRatioScale
+                : 1;
+            const interactionScale = reducedRenderQuality && model?.splatCount >= 500000 ? 0.5 : 1;
+            return Math.min(window.devicePixelRatio || 1, 1.5) * scale * interactionScale;
+        }
+
+        function updateRendererResolution() {
+            if (!renderer) return;
+            const pixelRatio = getRendererPixelRatio();
+            if (Math.abs(renderer.getPixelRatio() - pixelRatio) < 0.001) return;
+            renderer.setPixelRatio(pixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function setInteractionQuality(active) {
+            if (renderQualityTimeout) {
+                clearTimeout(renderQualityTimeout);
+                renderQualityTimeout = null;
+            }
+            if (active) {
+                reducedRenderQuality = true;
+                updateRendererResolution();
+                return;
+            }
+            renderQualityTimeout = setTimeout(() => {
+                reducedRenderQuality = false;
+                renderQualityTimeout = null;
+                updateRendererResolution();
+            }, 250);
+        }
+
         function updateAssetAvailability() {
             const model = availableModels.find(m => m.id === activeModelId);
             const assets = {
@@ -1398,9 +1559,9 @@
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000);
             camera.position.set(0, 1.2, 3.2);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
+            renderer.setPixelRatio(getRendererPixelRatio());
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.localClippingEnabled = true;
             container.appendChild(renderer.domElement);
 
@@ -1409,6 +1570,8 @@
             orbitControls.dampingFactor = 0.05;
             orbitControls.autoRotate = false;
             orbitControls.autoRotateSpeed = 1.0;
+            orbitControls.addEventListener('start', () => setInteractionQuality(true));
+            orbitControls.addEventListener('end', () => setInteractionQuality(false));
 
             transformControls = new TransformControls(camera, renderer.domElement);
             transformControls.size = 0.75;
@@ -1530,7 +1693,11 @@
                 camera.getWorldDirection(direction);
                 orbitControls.target.copy(camera.position).add(direction);
             });
-            document.addEventListener('visibilitychange', () => { clearMovement(); draggingLook = false; });
+            document.addEventListener('visibilitychange', () => {
+                clearMovement();
+                draggingLook = false;
+                setInteractionQuality(false);
+            });
             const selectedModel = availableModels.find(model => model.id === activeModelId);
             updateAssetAvailability();
             loadAsset(loadSavedModelState()?.assetType || selectedModel?.defaultAsset || 'gaussian');
@@ -1601,6 +1768,19 @@
             showLoader(`Loading ${activeModelId} (${type.toUpperCase()})...`);
 
             const selectedModel = availableModels.find(model => model.id === activeModelId);
+            updateRendererResolution();
+            const modelCameraUp = selectedModel?.cameraUp;
+            if (Array.isArray(modelCameraUp) && modelCameraUp.length === 3 && modelCameraUp.every(Number.isFinite)) {
+                camera.up.fromArray(modelCameraUp).normalize();
+            } else {
+                camera.up.set(0, 1, 0);
+            }
+            const maxCameraDistance = selectedModel?.maxCameraDistance;
+            orbitControls.maxDistance = Number.isFinite(maxCameraDistance) && maxCameraDistance > 0
+                ? maxCameraDistance
+                : Infinity;
+            orbitControls.enablePan = selectedModel?.allowPan !== false;
+            orbitControls.update();
             const path = getAssetPath(type);
             if (!path) {
                 hideLoader();
@@ -1643,7 +1823,8 @@
                         integerBasedSort: true,
                         halfPrecisionCovariancesOnGPU: true,
                         sharedMemoryForWorkers: false,
-                        sphericalHarmonicsDegree: 2
+                        sphericalHarmonicsDegree: 3,
+                        maxScreenSpaceSplatSize: selectedModel?.maxScreenSpaceSplatSize ?? 1024
                     });
                     currentDropInViewer = dropInViewer;
                     modelGroup.add(dropInViewer);
@@ -1651,7 +1832,7 @@
                     await dropInViewer.addSplatScene(path, {
                         format: GaussianSplats3D.SceneFormat.Ply,
                         showLoadingUI: false,
-                        progressiveLoad: false,
+                        progressiveLoad: true,
                         splatAlphaRemovalThreshold: 0
                     });
 
@@ -2008,6 +2189,9 @@
                 keysPressed[e.code] = true;
                 keysPressed[e.key.toLowerCase()] = true;
                 if (e.shiftKey) keysPressed['shift'] = true;
+                if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE', 'KeyQ', 'KeyC'].includes(e.code)) {
+                    setInteractionQuality(true);
+                }
 
                 if (e.key === '1') setGizmoMode('view');
                 if (e.key === '2') setGizmoMode('rotate');
@@ -2019,12 +2203,17 @@
                 keysPressed[e.code] = false;
                 keysPressed[e.key.toLowerCase()] = false;
                 if (!e.shiftKey) keysPressed['shift'] = false;
+                if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE', 'KeyQ', 'KeyC'].includes(e.code) &&
+                    !['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE', 'KeyQ', 'KeyC'].some(code => keysPressed[code])) {
+                    setInteractionQuality(false);
+                }
             });
 
             window.addEventListener('blur', () => {
                 for (const k in keysPressed) {
                     keysPressed[k] = false;
                 }
+                setInteractionQuality(false);
             });
 
             // Camera Speed Sync (HUD + Sidebar)
@@ -2177,7 +2366,7 @@
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                updateRendererResolution();
             });
         }
 
