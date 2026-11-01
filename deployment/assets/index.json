@@ -11,13 +11,15 @@
         "62a2e3ce7eacc16dfac7c81164d2d2e03826c4bf24a6ff2f73ec4ea572256a12.003.gzpart"
       ]
     },
-    "models/capture-103670e9f859/splat.ply": {
-      "sha256": "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3",
-      "bytes": 100235471,
+    "models/auditorium_30k_room_only/splat.ply": {
+      "sha256": "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1",
+      "bytes": 211686209,
       "chunks": [
-        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.000.gzpart",
-        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.001.gzpart",
-        "ee5afdb326f915f28cd26a08002b480623c74403a2198b2a1bd0c69b92b284a3.002.gzpart"
+        "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1.000.gzpart",
+        "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1.001.gzpart",
+        "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1.002.gzpart",
+        "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1.003.gzpart",
+        "7ef375824f28712f1cfada664025dbe6d3f856fbff16c36839cd736aa73e3fd1.004.gzpart"
       ]
     },
     "models/capture-b50e7e9858dd/splat.ply": {
@@ -27,14 +29,7 @@
         "37744d21b93a428164156bf7ea210ea86a3a3c0decd2f32bbbac06b2c4105d0b.000.gzpart"
       ]
     },
-    "models/capture-c0574185abba/splat.ply": {
-      "sha256": "7717d2d66a2967e942d6c6b274d4bd9adddf3362ff87b95df955e6f8b37c1ff0",
-      "bytes": 41912555,
-      "chunks": [
-        "7717d2d66a2967e942d6c6b274d4bd9adddf3362ff87b95df955e6f8b37c1ff0.000.gzpart"
-      ]
-    },
-    "models/kitchen-splat-whatsapp/splat.ply": {
+    "models/kitchen_30k/splat.ply": {
       "sha256": "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9",
       "bytes": 256142938,
       "chunks": [
@@ -46,21 +41,11 @@
         "beaa99062d93b5f5de95ec64c206f616c24c809618e1c857467de8479c7bf3f9.005.gzpart"
       ]
     },
-    "models/parking-recovery-01/splat.ply": {
-      "sha256": "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af",
-      "bytes": 472001552,
+    "models/lego_30k_clean_dense_components/splat.ply": {
+      "sha256": "8242a6d9e0b20a72bb7efa0b5fdd5d3e3c4c6d50bdfaf9e1840cf4f1f7e64a6a",
+      "bytes": 12701362,
       "chunks": [
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.000.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.001.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.002.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.003.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.004.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.005.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.006.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.007.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.008.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.009.gzpart",
-        "164211444e55ddc796a26373e8c093d8519b2abf3a705e342c521b1bd31462af.010.gzpart"
+        "8242a6d9e0b20a72bb7efa0b5fdd5d3e3c4c6d50bdfaf9e1840cf4f1f7e64a6a.000.gzpart"
       ]
     }
   }
