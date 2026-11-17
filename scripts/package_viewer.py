@@ -66,7 +66,7 @@ def package(destination):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('output', type=Path, nargs='?', default=ROOT / 'output/site')
+    parser.add_argument('--output', type=Path, default=ROOT / 'output/site')
     args = parser.parse_args()
     try:
         package(args.output.resolve())
