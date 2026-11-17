@@ -22,6 +22,6 @@ context.restoreCameraOrFit();
 assert.deepEqual(camera.position.value,[1,2,3]);assert.deepEqual(controls.target.value,[4,5,6]);
 assert.equal(camera.fov,51);assert.equal(camera.zoom,1.2);assert.equal(camera.updated,true);
 context.queueSaveState();assert.equal(badge.innerText,'UNSAVED CHANGES');assert.equal(context.loadSavedModelState(),stored);
-assert.equal((html.match(/restoreCameraOrFit\(\);/g)||[]).length,2,'Both Gaussian and geometry loaders restore the saved camera');
+assert.equal((html.match(/restoreCameraOrFit\(\);/g)||[]).length,3,'Both asset loaders and camera reset restore the saved camera');
 context.PUBLIC_VIEW=true; context.availableModels[0].viewState=null; assert.equal(context.loadSavedModelState(),null,'Public site must ignore browser-only drafts');
 console.log('PASS: persisted defaults override stale browser state; camera restores without auto-fit; edits do not overwrite lock.');

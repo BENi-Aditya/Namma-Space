@@ -8,6 +8,8 @@ This sample is associated with the historical baseline by filename only; a compl
 
 Run `python3 -m unittest discover -s test -v`. These tests check non-overwrite guards, missing images/non-finite poses and manifest registration integrity. They do not prove reconstruction quality or browser performance.
 
+Run `node test/test_view_state.cjs` for the viewer's saved camera and alignment behavior.
+
 ## Distributable diagnostic excerpt
 
 `data/tabletop-sample.mp4` is a real 8-second excerpt (seconds 4-12) from the baseline source, re-encoded at 640x360 with audio and metadata removed. It is 598,152 bytes; ffprobe confirms video only. Four evenly spaced frames were inspected: laptop/table, no visible people or personal documents in those sampled frames. This small derivative is included in Git. It demonstrates input format and the pipeline entry point; it is an object/tabletop capture, not evidence of a complete indoor room or the source of IMG_2008. Public sharing of the full original audio/interior capture is still not authorized by this derivative review.

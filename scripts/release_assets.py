@@ -8,9 +8,12 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from platform_compat import resolve_asset_path
 KEYS = ('splat', 'pointcloud', 'stl', 'ply_mesh', 'obj')
 CHUNK_SIZE = 40 * 1024 * 1024
 
@@ -38,12 +41,12 @@ def chunk_paths(store, entry):
 
 def snapshot(root=ROOT, stage=False):
     app = root/'apps/viewer'; store = root/'deployment/assets'; store.mkdir(parents=True,exist_ok=True)
-    manifest = json.loads((app/'models.json').read_text())
+    manifest = json.loads((app/'models.json').read_text(encoding='utf-8'))
     index_path = store/'index.json'
-    old = json.loads(index_path.read_text())['assets'] if index_path.exists() else {}
+    old = json.loads(index_path.read_text(encoding='utf-8'))['assets'] if index_path.exists() else {}
     assets = {}
     for relative in references(manifest):
-        path = app/relative
+        path = resolve_asset_path(app, relative)
         if not path.is_file():
             if relative not in old: raise ValueError(f'Export not found: {relative}. Restore it before committing.')
             list(chunk_paths(store,old[relative]))
@@ -65,20 +68,19 @@ def snapshot(root=ROOT, stage=False):
                 if not target.exists(): target.write_bytes(data)
                 parts.append(name)
         assets[relative]={'sha256':sha,'bytes':path.stat().st_size,'chunks':parts}
-    index_path.write_text(json.dumps({'version':1,'assets':assets},indent=2)+'\n')
+    index_path.write_text(json.dumps({'version':1,'assets':assets},indent=2)+'\n', encoding='utf-8')
     if stage:
-        # Include only the public manifest and its exact assets, not unrelated working changes.
         subprocess.run(['git','add','--','apps/viewer/models.json','deployment/assets'],cwd=root,check=True)
     print(f'Release snapshot ready: {len(assets)} assets. Saved view settings are in models.json.')
 
 def restore(root=ROOT, destination=None):
     app=root/'apps/viewer';store=root/'deployment/assets'
-    manifest=json.loads((app/'models.json').read_text())
-    assets=json.loads((store/'index.json').read_text())['assets']
+    manifest=json.loads((app/'models.json').read_text(encoding='utf-8'))
+    assets=json.loads((store/'index.json').read_text(encoding='utf-8'))['assets']
     output=Path(destination) if destination else app
     for relative in references(manifest):
         if relative not in assets: raise ValueError(f'{relative} is absent from the release snapshot. Run scripts/release_assets.py snapshot, commit and push.')
-        entry=assets[relative];target=output/relative
+        entry=assets[relative];target=resolve_asset_path(output, relative)
         if target.is_file() and digest(target)==entry['sha256']:continue
         target.parent.mkdir(parents=True,exist_ok=True)
         with tempfile.TemporaryFile() as compressed:

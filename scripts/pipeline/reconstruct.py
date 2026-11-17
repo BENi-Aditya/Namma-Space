@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """Supported video -> COLMAP -> Splatfacto -> viewer pipeline. Dry-run by default."""
 import argparse
-import fcntl
-import signal
-import threading
-import time
+from fractions import Fraction
 import hashlib
 import json
 import math
@@ -13,16 +10,81 @@ from pathlib import Path
 import re
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
+import threading
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from platform_compat import file_lock, terminate_process
 VIEWER = ROOT / 'apps/viewer'
 WORK = ROOT / 'namma-space-project/.work'
+MIN_FRAME_TARGET = 1001
+FRAME_SAMPLING_RATE = 8
+
+
+def recommend_frame_target(metadata):
+    streams = metadata.get('streams', [])
+    if not streams:
+        raise ValueError('FFprobe found no video stream.')
+    stream = streams[0]
+    durations = [stream.get('duration'), metadata.get('format', {}).get('duration')]
+    duration = next((value for value in durations if value and value != 'N/A'), None)
+    if duration is None:
+        raise ValueError('FFprobe did not report the video duration.')
+    try:
+        duration = float(duration)
+    except (TypeError, ValueError):
+        raise ValueError(f'Invalid video duration reported by FFprobe: {duration}') from None
+    if not math.isfinite(duration) or duration <= 0:
+        raise ValueError(f'Invalid video duration reported by FFprobe: {duration}')
+
+    frame_rate = None
+    for candidate in (stream.get('avg_frame_rate'), stream.get('r_frame_rate')):
+        try:
+            parsed_rate = float(Fraction(candidate))
+        except (ValueError, ZeroDivisionError, TypeError):
+            continue
+        if math.isfinite(parsed_rate) and parsed_rate > 0:
+            frame_rate = parsed_rate
+            break
+    if frame_rate is None:
+        raise ValueError('FFprobe did not report a valid video frame rate.')
+    if not math.isfinite(frame_rate) or frame_rate <= 0:
+        raise ValueError(f'Invalid video frame rate reported by FFprobe: {frame_rate}')
+
+    reported_frames = stream.get('nb_frames')
+    source_frames = int(reported_frames) if reported_frames and reported_frames != 'N/A' else math.ceil(duration * frame_rate)
+    if source_frames <= 0:
+        raise ValueError(f'Invalid source frame count reported by FFprobe: {source_frames}')
+
+    target_frames = min(source_frames, max(MIN_FRAME_TARGET, math.ceil(duration * FRAME_SAMPLING_RATE)))
+    return {
+        'duration_seconds': duration,
+        'source_frames': source_frames,
+        'target_frames': target_frames,
+    }
+
+
+def inspect_video(video):
+    if not shutil.which('ffprobe'):
+        return {'duration_seconds': 0.0, 'source_frames': 300, 'target_frames': 300}
+    try:
+        result = subprocess.run(
+            ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+             '-show_entries', 'format=duration:stream=avg_frame_rate,r_frame_rate,nb_frames,duration',
+             '-of', 'json', str(video)],
+            check=True, capture_output=True, text=True,
+        )
+        return recommend_frame_target(json.loads(result.stdout))
+    except Exception:
+        return {'duration_seconds': 0.0, 'source_frames': 300, 'target_frames': 300}
 
 
 def validate_poses(directory, min_frames=20):
-    data = json.loads((directory / 'transforms.json').read_text())
+    data = json.loads((directory / 'transforms.json').read_text(encoding='utf-8'))
     frames = data.get('frames', [])
     if len(frames) < min_frames:
         raise ValueError(f'Only {len(frames)} registered frames; need at least {min_frames}. Recapture before training.')
@@ -35,14 +97,14 @@ def validate_poses(directory, min_frames=20):
             raise ValueError('Camera transform must be 4x4')
         if not all(math.isfinite(float(value)) for row in matrix for value in row):
             raise ValueError('Non-finite camera transform')
-    # This is an engineering guard, not an official judging threshold or fidelity metric.
     return len(frames)
 
 
 def register_model(viewer, room, ply, method="splatfacto"):
-    with (viewer / "models.lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        return _register_model(viewer, room, ply, method)
+    with (viewer / "models.lock").open("a", encoding='utf-8') as lock:
+        with file_lock(lock, exclusive=True):
+            return _register_model(viewer, room, ply, method)
+
 
 def _register_model(viewer, room, ply, method="splatfacto"):
     with ply.open('rb') as stream:
@@ -56,7 +118,7 @@ def _register_model(viewer, room, ply, method="splatfacto"):
     if not header.startswith(b'ply\n') or not valid:
         raise ValueError('Export is not a valid Gaussian PLY or point-cloud PLY for the selected method')
     manifest = viewer / 'models.json'
-    data = json.loads(manifest.read_text())
+    data = json.loads(manifest.read_text(encoding='utf-8'))
     asset = 'splat' if method == 'splatfacto' else 'pointcloud'
     entry = {'id': room, 'name': room, 'method': method,
              asset: f'models/{room}/{ply.name}',
@@ -65,31 +127,34 @@ def _register_model(viewer, room, ply, method="splatfacto"):
     data['models'] = [entry] + [m for m in data['models'] if m['id'] != room]
     data['latest'] = room
     temp = manifest.with_suffix('.json.tmp')
-    temp.write_text(json.dumps(data, indent=2) + '\n')
+    temp.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
     os.replace(temp, manifest)
 
 
-def run_pipeline(video, room, iterations, execute=False, method="splatfacto", device="cuda", viewer_port=None):
+def run_pipeline(video, room, iterations, execute=False, method="splatfacto", device="cuda", viewer_port=None, num_frames_target=300):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', room):
         raise ValueError('Room ID must contain only letters, digits, underscores or hyphens (max 64).')
     if method == 'splatfacto' and device != 'cuda':
-        raise ValueError('Installed Splatfacto/gsplat requires CUDA. Use nerfacto with mps on this Mac.')
+        raise ValueError('Installed Splatfacto/gsplat requires CUDA. Use nerfacto with mps on macOS.')
     video = video.expanduser().resolve()
     if not video.is_file():
         raise ValueError(f'Video not found: {video}')
     processed = WORK / room
     training = WORK / f'training-{room}'
     export = VIEWER / 'models' / room
-    manifest = json.loads((VIEWER / 'models.json').read_text())
+    manifest = json.loads((VIEWER / 'models.json').read_text(encoding='utf-8'))
     if any(p.exists() for p in [processed, training, export]) or any(m['id'] == room for m in manifest['models']):
         raise ValueError('Room already exists. Choose a new ID; existing data will never be deleted or overwritten.')
-    # Nerfstudio builds unquoted COLMAP shell commands internally. Relative
-    # workspace paths avoid breaking on this checkout's 'Manual Library' name.
+    
+    target_frames = num_frames_target or 300
+
     def cli_path(path):
-        return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+        rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+        return rel.replace('\\', '/')
+
     commands = [
         ['ns-process-data', 'video', '--data', cli_path(video), '--output-dir', cli_path(processed),
-         '--num-frames-target', '300', '--matching-method', 'sequential', '--no-gpu'],
+         '--num-frames-target', str(target_frames), '--matching-method', 'sequential', '--no-gpu'],
         ['ns-train', method, '--data', cli_path(processed), '--output-dir', cli_path(training),
          '--experiment-name', room, '--max-num-iterations', str(iterations),
          '--machine.device-type', device, '--vis', 'tensorboard', '--logging.local-writer.max-log-size', '0'],
@@ -121,6 +186,7 @@ def run_pipeline(video, room, iterations, execute=False, method="splatfacto", de
         for chunk in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(chunk)
     record = {'video_name': video.name, 'video_sha256': digest.hexdigest(), 'room': room, 'method': method, 'device': device, 'iterations_requested': iterations,
+              'target_frames': target_frames,
               'commands': commands, 'state': 'processing'}
     record_file = processed / 'run.json'
     try:
@@ -145,19 +211,28 @@ def run_pipeline(video, room, iterations, execute=False, method="splatfacto", de
         record['error'] = str(error)
         raise
     finally:
-        record_file.write_text(json.dumps(record, indent=2) + '\n')
+        record_file.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
     print(f'Export registered. Review http://127.0.0.1:8080/viewer.html?model={room} before selecting it for submission.')
 
 
 def main():
-    # Dashboard-owned jobs must not continue invisibly after the controller dies.
     parent = os.environ.get('NAMMA_PARENT_PID')
     if parent:
         def watch_parent():
             while True:
                 time.sleep(1)
-                if os.getppid() != int(parent):
-                    os.killpg(os.getpgrp(), signal.SIGTERM)
+                try:
+                    if hasattr(os, 'getppid'):
+                        current_parent = os.getppid()
+                    else:
+                        break
+                except Exception:
+                    break
+                if current_parent != int(parent):
+                    if hasattr(os, 'killpg') and hasattr(os, 'getpgrp'):
+                        os.killpg(os.getpgrp(), signal.SIGTERM)
+                    else:
+                        sys.exit(0)
                     return
         threading.Thread(target=watch_parent, daemon=True).start()
     parser = argparse.ArgumentParser(description=__doc__)

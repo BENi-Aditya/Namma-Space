@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Loopback-only, persistent video training queue and viewer server."""
-import fcntl
 import argparse, atexit, json, os, re, secrets, shutil, signal, socket, subprocess, sys, threading, time, uuid, webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from platform_compat import file_lock, terminate_process, resolve_asset_path
 APP = ROOT / 'apps/viewer'
 STATE = ROOT / 'namma-space-project/.work/admin'
 TOKEN = secrets.token_urlsafe(32)
@@ -20,7 +21,7 @@ ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 def save(job):
     path = STATE / (job['id'] + '.json')
     temp = path.with_suffix('.tmp')
-    temp.write_text(json.dumps(job, indent=2))
+    temp.write_text(json.dumps(job, indent=2), encoding='utf-8')
     temp.replace(path)
 
 def python_path():
@@ -29,15 +30,21 @@ def python_path():
 
 def environment():
     env = os.environ.copy()
-    env['PATH'] = str(Path(python_path()).parent) + os.pathsep + env.get('PATH', '') + ':/opt/homebrew/bin:/usr/local/bin'
+    py_dir = str(Path(python_path()).parent)
+    paths = [py_dir]
+    if sys.platform != 'win32':
+        paths.extend(['/opt/homebrew/bin', '/usr/local/bin'])
+    if env.get('PATH'):
+        paths.append(env['PATH'])
+    env['PATH'] = os.pathsep.join(paths)
     env.update(NAMMA_PARENT_PID=str(os.getpid()), PYTHONUNBUFFERED='1', PYTORCH_ENABLE_MPS_FALLBACK='1', MPLCONFIGDIR=str(STATE / 'matplotlib'))
     return env
 
 def models():
-    data = json.loads((APP / 'models.json').read_text())
+    data = json.loads((APP / 'models.json').read_text(encoding='utf-8'))
     for m in data['models']:
         key = {'gaussian':'splat', 'pointcloud':'pointcloud', 'stl':'stl'}.get(m.get('defaultAsset'), 'pointcloud')
-        m['ready'] = bool(m.get(key) and (APP / m[key]).is_file())
+        m['ready'] = bool(m.get(key) and resolve_asset_path(APP, m[key]).is_file())
     return data
 
 def history():
@@ -54,14 +61,8 @@ def terminate():
     global PROCESS
     with LOCK:
         process = PROCESS
-    if process and process.poll() is None:
-        try:
-            os.killpg(process.pid, signal.SIGTERM)
-            process.wait(timeout=8)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+    if process:
+        terminate_process(process)
 
 def worker():
     global PROCESS
@@ -76,11 +77,17 @@ def worker():
             with socket.socket() as sock:
                 sock.bind(('127.0.0.1',0)); port = sock.getsockname()[1]
             job['viewer_url'] = f'http://127.0.0.1:{port}'
-            command = [python_path(), '-u', str(ROOT/'scripts/pipeline/reconstruct.py'), job['video'], job['model_id'], '--iterations', str(job['iterations']), '--method', 'nerfacto', '--device', 'mps' if sys.platform=='darwin' else 'cuda', '--viewer-port', str(port), '--execute']
-            with log_path.open('w') as log:
+            device = 'mps' if sys.platform=='darwin' else 'cuda'
+            command = [python_path(), '-u', str(ROOT/'scripts/pipeline/reconstruct.py'), job['video'], job['model_id'], '--iterations', str(job['iterations']), '--method', 'nerfacto', '--device', device, '--viewer-port', str(port), '--execute']
+            with log_path.open('w', encoding='utf-8') as log:
                 with LOCK:
                     if job['state']=='cancelled': continue
-                    PROCESS = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=environment(), cwd=ROOT, start_new_session=True)
+                    popen_kwargs = {'stdout': subprocess.PIPE, 'stderr': subprocess.STDOUT, 'text': True, 'bufsize': 1, 'env': environment(), 'cwd': ROOT}
+                    if sys.platform != 'win32':
+                        popen_kwargs['start_new_session'] = True
+                    else:
+                        popen_kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+                    PROCESS = subprocess.Popen(command, **popen_kwargs)
                     job['pid'] = PROCESS.pid
                     save(job)
                 for raw in PROCESS.stdout:
@@ -113,18 +120,20 @@ def worker():
             with LOCK: PROCESS = None
 
 def rename(model_id, name):
-    with (APP / 'models.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        return _rename(model_id, name)
+    with (APP / 'models.lock').open('a', encoding='utf-8') as lock:
+        with file_lock(lock, exclusive=True):
+            return _rename(model_id, name)
 
 def _rename(model_id, name):
     if not isinstance(name,str) or not 1 <= len(name.strip()) <= 100: raise ValueError('Name must be 1–100 characters.')
     path = APP / 'models.json'
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding='utf-8'))
     model = next((m for m in data['models'] if m['id']==model_id), None)
     if model is None: raise ValueError('Model not found.')
     model['name'] = name.strip()
-    temp = path.with_suffix('.admin.tmp');temp.write_text(json.dumps(data,indent=2)+'\n');temp.replace(path)
+    temp = path.with_suffix('.admin.tmp')
+    temp.write_text(json.dumps(data, indent=2)+'\n', encoding='utf-8')
+    temp.replace(path)
 
 def save_view(model_id, state):
     if not isinstance(state, dict) or state.get('modelId') != model_id:
@@ -150,14 +159,16 @@ def save_view(model_id, state):
         except (KeyError,TypeError,ValueError): raise ValueError('Invalid crop')
         if not math.isfinite(value) or not 0<=value<=100: raise ValueError('Invalid crop')
     if state.get('assetType') not in ['gaussian','pointcloud','stl','ply']: raise ValueError('Invalid asset')
-    with (APP/'models.lock').open('a') as lock:
-        fcntl.flock(lock,fcntl.LOCK_EX)
-        path = APP/'models.json'
-        data = json.loads(path.read_text())
-        model = next((m for m in data['models'] if m['id']==model_id),None)
-        if model is None: raise ValueError('Unknown model')
-        model['viewState'] = state
-        temp = path.with_suffix('.view.tmp');temp.write_text(json.dumps(data,indent=2)+'\n');temp.replace(path)
+    with (APP/'models.lock').open('a', encoding='utf-8') as lock:
+        with file_lock(lock, exclusive=True):
+            path = APP/'models.json'
+            data = json.loads(path.read_text(encoding='utf-8'))
+            model = next((m for m in data['models'] if m['id']==model_id),None)
+            if model is None: raise ValueError('Unknown model')
+            model['viewState'] = state
+            temp = path.with_suffix('.view.tmp')
+            temp.write_text(json.dumps(data, indent=2)+'\n', encoding='utf-8')
+            temp.replace(path)
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self,*args,**kwargs): super().__init__(*args,directory=str(APP),**kwargs)
@@ -166,8 +177,15 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff')
         super().end_headers()
+    def translate_path(self, path):
+        clean_path = urlparse(path).path
+        if clean_path.startswith('/models/'):
+            resolved = resolve_asset_path(APP, clean_path.lstrip('/'))
+            if resolved.is_file():
+                return str(resolved)
+        return super().translate_path(path)
     def answer(self,data,status=200):
-        body=json.dumps(data).encode();self.send_response(status);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
+        body=json.dumps(data).encode('utf-8');self.send_response(status);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
     def valid_host(self):
         return self.headers.get('Host') in {f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}'}
     def do_GET(self):
@@ -241,12 +259,18 @@ def main():
     global HISTORY
     parser=argparse.ArgumentParser();parser.add_argument('--port',type=int,default=8080);parser.add_argument('--no-browser',action='store_true');args=parser.parse_args()
     STATE.mkdir(parents=True,exist_ok=True)
-    import fcntl
-    lockfile=(STATE/'server.lock').open('w')
-    try: fcntl.flock(lockfile,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    except BlockingIOError: raise SystemExit('Another training dashboard is already running.')
+    lockfile=(STATE/'server.lock').open('w', encoding='utf-8')
+    try:
+        if sys.platform == 'win32':
+            import msvcrt
+            lockfile.seek(0)
+            msvcrt.locking(lockfile.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (BlockingIOError, PermissionError, OSError): raise SystemExit('Another training dashboard is already running.')
     for path in STATE.glob('*.json'):
-        job=json.loads(path.read_text())
+        job=json.loads(path.read_text(encoding='utf-8'))
         if job['state'] in ['processing','queued']:
             job.update(state='interrupted',error='Dashboard stopped before completion. Partial results are preserved.');save(job)
         JOBS.append(job)
